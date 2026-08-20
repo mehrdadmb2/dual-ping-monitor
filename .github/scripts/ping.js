@@ -2,48 +2,73 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// لیست هدف‌ها (همین اول با ۳ تا شروع کن)
-const targets = [
-  { name: 'Snapp', url: 'snapp.ir' },
-  { name: 'Divar', url: 'divar.ir' },
-  { name: 'Soft98', url: 'soft98.ir' }
-];
+// خواندن لیست هدف‌ها
+const targetsData = JSON.parse(fs.readFileSync('targets.json', 'utf8'));
+const allTargets = [...targetsData.sites, ...targetsData.dns];
 
 const results = [];
 const timestamp = new Date().toISOString();
 
-for (const target of targets) {
+for (const target of allTargets) {
+  const pingTarget = target.url || target.ip;
   try {
-    const start = Date.now();
-    execSync(`ping -c 4 -W 2 ${target.url}`, { stdio: 'pipe' });
-    const latency = Date.now() - start;
+    const output = execSync(`ping -c 4 -W 2 ${pingTarget}`, { 
+      stdio: 'pipe',
+      encoding: 'utf8'
+    });
+    
+    // استخراج آمار از خروجی ping
+    const lines = output.split('\n');
+    const statsLine = lines.find(line => line.includes('rtt') || line.includes('round-trip'));
+    let latency = null, packetLoss = 0, jitter = 0;
+    
+    if (statsLine) {
+      // مثال: rtt min/avg/max/mdev = 12.345/15.678/20.123/2.456 ms
+      const matches = statsLine.match(/([\d.]+)\/([\d.]+)\/([\d.]+)\/([\d.]+)/);
+      if (matches) {
+        latency = Math.round(parseFloat(matches[2])); // avg
+        jitter = Math.round(parseFloat(matches[4])); // mdev
+      }
+    }
+    
+    // محاسبه درصد packet loss
+    const lossMatch = output.match(/(\d+)%\s+packet loss/);
+    if (lossMatch) packetLoss = parseInt(lossMatch[1]);
+    
     results.push({
       name: target.name,
-      url: target.url,
+      target: pingTarget,
+      type: target.type || 'unknown',
       status: 'up',
-      latency: Math.round(latency / 4), // میانگین تقریبی
-      timestamp: timestamp
+      latency,
+      packet_loss: packetLoss,
+      jitter,
+      timestamp
     });
   } catch (error) {
     results.push({
       name: target.name,
-      url: target.url,
+      target: pingTarget,
+      type: target.type || 'unknown',
       status: 'down',
       latency: null,
-      timestamp: timestamp
+      packet_loss: 100,
+      jitter: null,
+      timestamp
     });
   }
 }
 
 // ذخیره در فایل JSON با نام تاریخ
 const dateStr = new Date().toISOString().split('T')[0];
-const filePath = path.join(__dirname, '../../data/logs', `${dateStr}.json`);
+const filePath = path.join(__dirname, '../../data/logs', `github-${dateStr}.json`);
 
 let allData = [];
 if (fs.existsSync(filePath)) {
   allData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
-allData.push({ timestamp, results });
+allData.push({ timestamp, source: 'github-actions', results });
 
 fs.writeFileSync(filePath, JSON.stringify(allData, null, 2));
-console.log(`✅ Data saved to ${filePath}`);
+console.log(`✅ GitHub data saved to ${filePath}`);
+console.log(`📊 Checked ${results.length} targets`);
