@@ -1,0 +1,238 @@
+[
+  {
+    "timestamp": "2026-08-20T10:05:47.065Z",
+    "source": "github-actions",
+    "results": [
+      {
+        "name": "Snapp",
+        "target": "snapp.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Divar",
+        "target": "divar.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Soft98",
+        "target": "soft98.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Tapsi",
+        "target": "tapsi.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Aparat",
+        "target": "aparat.com",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Rubika",
+        "target": "rubika.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Bale",
+        "target": "bale.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Eitaa",
+        "target": "eitaa.com",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Cafebazaar",
+        "target": "cafebazaar.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Digiato",
+        "target": "digiato.com",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Isna",
+        "target": "isna.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Mellat Bank",
+        "target": "mellat.ir",
+        "type": "iranian",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Google",
+        "target": "google.com",
+        "type": "global",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "YouTube",
+        "target": "youtube.com",
+        "type": "global",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "GitHub",
+        "target": "github.com",
+        "type": "global",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Cloudflare",
+        "target": "cloudflare.com",
+        "type": "global",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Wikipedia",
+        "target": "wikipedia.org",
+        "type": "global",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Cloudflare DNS",
+        "target": "1.1.1.1",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Google DNS",
+        "target": "8.8.8.8",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "Quad9",
+        "target": "9.9.9.9",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "OpenDNS",
+        "target": "208.67.222.222",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "AdGuard DNS",
+        "target": "94.140.14.14",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      },
+      {
+        "name": "AliDNS",
+        "target": "223.5.5.5",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-20T10:05:47.065Z"
+      }
+    ]
+  }
+]
