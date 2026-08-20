@@ -1,0 +1,29 @@
+{
+  "sites": [
+    { "name": "Snapp", "url": "snapp.ir", "type": "iranian" },
+    { "name": "Divar", "url": "divar.ir", "type": "iranian" },
+    { "name": "Soft98", "url": "soft98.ir", "type": "iranian" },
+    { "name": "Tapsi", "url": "tapsi.ir", "type": "iranian" },
+    { "name": "Aparat", "url": "aparat.com", "type": "iranian" },
+    { "name": "Rubika", "url": "rubika.ir", "type": "iranian" },
+    { "name": "Bale", "url": "bale.ir", "type": "iranian" },
+    { "name": "Eitaa", "url": "eitaa.com", "type": "iranian" },
+    { "name": "Cafebazaar", "url": "cafebazaar.ir", "type": "iranian" },
+    { "name": "Digiato", "url": "digiato.com", "type": "iranian" },
+    { "name": "Isna", "url": "isna.ir", "type": "iranian" },
+    { "name": "Mellat Bank", "url": "mellat.ir", "type": "iranian" },
+    { "name": "Google", "url": "google.com", "type": "global" },
+    { "name": "YouTube", "url": "youtube.com", "type": "global" },
+    { "name": "GitHub", "url": "github.com", "type": "global" },
+    { "name": "Cloudflare", "url": "cloudflare.com", "type": "global" },
+    { "name": "Wikipedia", "url": "wikipedia.org", "type": "global" }
+  ],
+  "dns": [
+    { "name": "Cloudflare DNS", "ip": "1.1.1.1", "type": "dns" },
+    { "name": "Google DNS", "ip": "8.8.8.8", "type": "dns" },
+    { "name": "Quad9", "ip": "9.9.9.9", "type": "dns" },
+    { "name": "OpenDNS", "ip": "208.67.222.222", "type": "dns" },
+    { "name": "AdGuard DNS", "ip": "94.140.14.14", "type": "dns" },
+    { "name": "AliDNS", "ip": "223.5.5.5", "type": "dns" }
+  ]
+}
