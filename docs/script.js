@@ -1,57 +1,36 @@
-// تاریخ امروز رو به‌صورت خودکار می‌گیره
 const today = new Date().toISOString().split('T')[0];
-const dataUrl = `../data/logs/${today}.json`;
+const sources = [
+  { name: 'GitHub Actions', file: `../data/logs/github-${today}.json` },
+  { name: 'Cloudflare Worker', file: `../data/logs/cloudflare-${today}.json` }
+];
 
-fetch(dataUrl)
-  .then(res => {
-    if (!res.ok) throw new Error('داده‌ای برای امروز وجود ندارد');
-    return res.json();
-  })
-  .then(data => {
-    const lastEntry = data[data.length - 1];
-    renderStatus(lastEntry.results);
-    renderHistory(data);
-  })
-  .catch(err => {
-    document.getElementById('status').innerHTML = `<p style="color:#f85149;">❌ ${err.message}</p>`;
-  });
-
-function renderStatus(results) {
+async function loadAllData() {
   const container = document.getElementById('status');
-  let html = '<h2>🟢 آخرین وضعیت پینگ</h2><ul>';
-  for (const item of results) {
-    const statusClass = item.status === 'up' ? 'up' : 'down';
-    html += `<li class="${statusClass}">
-      <span class="status-badge">${item.status === 'up' ? '✅ آنلاین' : '❌ آفلاین'}</span>
-      <strong>${item.name}</strong>
-      ${item.latency ? `<span class="latency">⏱ ${item.latency} ms</span>` : ''}
-      <span style="font-size:0.8rem;color:#8b949e;display:block;">⏰ ${new Date(item.timestamp).toLocaleTimeString('fa-IR')}</span>
-    </li>`;
+  let html = '<h2>📊 مقایسه دو پلتفرم</h2>';
+  
+  for (const source of sources) {
+    try {
+      const response = await fetch(source.file);
+      if (!response.ok) throw new Error('No data');
+      const data = await response.json();
+      const lastEntry = data[data.length - 1];
+      
+      html += `<h3>${source.name}</h3><ul>`;
+      for (const item of lastEntry.results.slice(0, 10)) { // فقط ۱۰ تا اول
+        const statusClass = item.status === 'up' ? 'up' : 'down';
+        html += `<li class="${statusClass}">
+          <strong>${item.name}</strong>
+          ${item.status === 'up' ? `✅ ${item.latency || 0}ms` : '❌'}
+          ${item.packet_loss !== undefined ? `📉 ${item.packet_loss}% loss` : ''}
+        </li>`;
+      }
+      html += '</ul>';
+    } catch (error) {
+      html += `<p style="color:#f85149;">❌ ${source.name}: ${error.message}</p>`;
+    }
   }
-  html += '</ul>';
+  
   container.innerHTML = html;
 }
 
-function renderHistory(allData) {
-  const container = document.getElementById('history');
-  if (!allData || allData.length < 2) return;
-  
-  const last = allData[allData.length - 1];
-  const prev = allData[allData.length - 2];
-  
-  let html = '<h2>📊 مقایسه دو پینگ آخر</h2><ul>';
-  for (const item of last.results) {
-    const prevItem = prev.results.find(p => p.name === item.name);
-    const statusChanged = prevItem && prevItem.status !== item.status;
-    const color = statusChanged ? '#f0883e' : (item.status === 'up' ? '#2ea043' : '#f85149');
-    
-    html += `<li style="border-right-color:${color};">
-      <strong>${item.name}</strong>
-      ${item.status === 'up' ? `✅ ${item.latency}ms` : '❌'}
-      ${prevItem ? `(قبلی: ${prevItem.status === 'up' ? prevItem.latency+'ms' : '❌'})` : ''}
-      ${statusChanged ? '🔔 تغییر وضعیت!' : ''}
-    </li>`;
-  }
-  html += '</ul>';
-  container.innerHTML = html;
-}
+loadAllData();
