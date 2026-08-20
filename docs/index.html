@@ -5,13 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📡 Dual Ping Monitor</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="header">
         <h1>📡 Dual Ping Monitor</h1>
-        <div id="status"></div>
-        <div id="history"></div>
+        <div class="badges">
+            <span id="lastUpdate">⏳ در حال بارگذاری...</span>
+        </div>
     </div>
+
+    <div class="container">
+        <!-- آمار کلی -->
+        <div class="stats-grid">
+            <div class="stat-card" id="totalTargets">
+                <h3>🎯 مجموع هدف‌ها</h3>
+                <span class="number">-</span>
+            </div>
+            <div class="stat-card up" id="upCount">
+                <h3>✅ آنلاین</h3>
+                <span class="number">-</span>
+            </div>
+            <div class="stat-card down" id="downCount">
+                <h3>❌ آفلاین</h3>
+                <span class="number">-</span>
+            </div>
+            <div class="stat-card" id="avgLatency">
+                <h3>⏱ میانگین تاخیر</h3>
+                <span class="number">- ms</span>
+            </div>
+        </div>
+
+        <!-- نمودارهای مقایسه‌ای -->
+        <div class="charts-row">
+            <div class="chart-container">
+                <h2>📈 روند تاخیر (GitHub)</h2>
+                <canvas id="githubChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>📈 روند تاخیر (Cloudflare)</h2>
+                <canvas id="cloudflareChart"></canvas>
+            </div>
+        </div>
+
+        <!-- وضعیت فعلی -->
+        <div class="status-section">
+            <h2>🟢 وضعیت لحظه‌ای</h2>
+            <div id="statusList"></div>
+        </div>
+
+        <!-- مقایسه دو پلتفرم -->
+        <div class="comparison">
+            <h2>⚖️ مقایسه دو پلتفرم</h2>
+            <div id="comparisonTable"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
