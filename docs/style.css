@@ -1,47 +1,187 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
     background: #0d1117;
     color: #e6edf3;
-    margin: 0;
     padding: 20px;
+    min-height: 100vh;
 }
+
+.header {
+    max-width: 1400px;
+    margin: 0 auto 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    border-bottom: 2px solid #30363d;
+    padding-bottom: 15px;
+}
+
+.header h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #58a6ff, #3fb950);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.badges {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: #8b949e;
+}
+
 .container {
-    max-width: 1000px;
+    max-width: 1400px;
     margin: 0 auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
     background: #161b22;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-h1 {
     text-align: center;
-    border-bottom: 2px solid #30363d;
-    padding-bottom: 10px;
+    border: 1px solid #30363d;
+    transition: transform 0.2s;
 }
-ul {
-    list-style: none;
-    padding: 0;
+
+.stat-card:hover {
+    transform: translateY(-3px);
 }
-li {
-    padding: 10px 15px;
-    margin: 5px 0;
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: #8b949e;
+    font-weight: 400;
+}
+
+.stat-card .number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+    margin-top: 8px;
+}
+
+.stat-card.up .number { color: #3fb950; }
+.stat-card.down .number { color: #f85149; }
+
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 900px) {
+    .charts-row { grid-template-columns: 1fr; }
+}
+
+.chart-container {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+}
+
+.chart-container h2 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #8b949e;
+}
+
+.status-section {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    margin-bottom: 30px;
+}
+
+.status-section h2 {
+    margin-bottom: 15px;
+}
+
+#statusList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
     background: #0d1117;
     border-radius: 8px;
-    border-right: 5px solid #30363d;
-    font-size: 1.1rem;
+    border-right: 4px solid #30363d;
+    font-size: 0.95rem;
 }
-li.up { border-right-color: #2ea043; }
-li.down { border-right-color: #f85149; }
-.status-badge {
-    display: inline-block;
-    padding: 2px 12px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 0.8rem;
+
+.status-item.up { border-right-color: #3fb950; }
+.status-item.down { border-right-color: #f85149; }
+
+.status-item .name {
+    font-weight: 600;
 }
-.up .status-badge { background: #2ea043; color: #000; }
-.down .status-badge { background: #f85149; color: #fff; }
-.latency {
-    float: left;
+
+.status-item .latency {
     color: #58a6ff;
+    font-size: 0.85rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.up { background: #1b3b22; color: #3fb950; }
+.badge.down { background: #3b1a1a; color: #f85149; }
+
+.comparison {
+    background: #161b22;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+}
+
+.comparison table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.comparison th {
+    text-align: right;
+    padding: 12px;
+    background: #0d1117;
+    color: #8b949e;
+    font-weight: 400;
+    border-bottom: 2px solid #30363d;
+}
+
+.comparison td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #21262d;
+}
+
+.comparison tr:hover td {
+    background: #0d1117;
 }
