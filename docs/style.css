@@ -1,0 +1,47 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: #161b22;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+h1 {
+    text-align: center;
+    border-bottom: 2px solid #30363d;
+    padding-bottom: 10px;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+li {
+    padding: 10px 15px;
+    margin: 5px 0;
+    background: #0d1117;
+    border-radius: 8px;
+    border-right: 5px solid #30363d;
+    font-size: 1.1rem;
+}
+li.up { border-right-color: #2ea043; }
+li.down { border-right-color: #f85149; }
+.status-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+.up .status-badge { background: #2ea043; color: #000; }
+.down .status-badge { background: #f85149; color: #fff; }
+.latency {
+    float: left;
+    color: #58a6ff;
+}
