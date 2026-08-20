@@ -1,0 +1,35 @@
+name: GitHub Ping Monitor
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # هر ۱۰ دقیقه
+  workflow_dispatch:          # اجرای دستی
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run ping script
+        env:
+          SOURCE: 'github'
+          BASE_DIR: '.'
+        run: node .github/scripts/ping.js
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/github/
+          git diff --staged --quiet || git commit -m "📊 Update GitHub ping data [skip ci]"
+          git push
