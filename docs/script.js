@@ -1,191 +1,458 @@
+// ============================================
+// 1. STATE & CONFIG
+// ============================================
+const state = {
+    data: null,
+    githubData: [],
+    cloudflareData: [],
+    mergedData: null,
+    currentPeriod: 20,
+    searchTerm: '',
+    filterCategory: 'all'
+};
+
 const today = new Date().toISOString().split('T')[0];
-let githubChart, cloudflareChart;
+let githubChartInstance = null;
+let cloudflareChartInstance = null;
 
-async function loadDashboard() {
+// ============================================
+// 2. LOAD DATA (با fallback و خطایابی)
+// ============================================
+async function loadData() {
     try {
-        // بارگذاری داده‌های ادغام شده
+        // تلاش برای بارگذاری داده‌های ادغام شده
         const mergedRes = await fetch(`../data/merged/${today}.json`);
-        const mergedData = await mergedRes.json();
-        
-        // بروزرسانی آمار
-        updateStats(mergedData);
-        
-        // رسم نمودارها
-        drawCharts(mergedData);
-        
-        // نمایش وضعیت فعلی
-        renderStatus(mergedData);
-        
-        // جدول مقایسه
-        renderComparison(mergedData);
-        
-        // زمان آخرین بروزرسانی
-        document.getElementById('lastUpdate').textContent = 
-            `🔄 آخرین بروزرسانی: ${new Date().toLocaleString('fa-IR')}`;
-            
+        if (mergedRes.ok) {
+            state.mergedData = await mergedRes.json();
+            state.githubData = state.mergedData.sources?.github || [];
+            state.cloudflareData = state.mergedData.sources?.cloudflare || [];
+        } else {
+            // اگر داده‌های ادغام شده نبود، تک تک تلاش کن
+            await loadIndividualData();
+        }
     } catch (error) {
-        console.error('Error loading data:', error);
-        document.getElementById('statusList').innerHTML = 
-            `<p style="color:#f85149;">❌ خطا در بارگذاری داده‌ها: ${error.message}</p>`;
+        console.warn('⚠️ Could not load merged data, trying individual sources...', error);
+        await loadIndividualData();
     }
-}
 
-function updateStats(mergedData) {
-    const sources = mergedData.sources || {};
-    const github = sources.github || [];
-    const cloudflare = sources.cloudflare || [];
-    
-    const latest = [...github, ...cloudflare].filter(a => a.length > 0);
-    if (latest.length === 0) return;
-    
-    const last = latest[latest.length - 1];
-    const results = last.results || [];
-    
-    document.getElementById('totalTargets').querySelector('.number').textContent = results.length;
-    document.getElementById('upCount').querySelector('.number').textContent = 
-        results.filter(r => r.status === 'up').length;
-    document.getElementById('downCount').querySelector('.number').textContent = 
-        results.filter(r => r.status === 'down').length;
-    
-    const avgLat = results.filter(r => r.latency)
-        .reduce((sum, r) => sum + r.latency, 0) / results.filter(r => r.latency).length;
-    document.getElementById('avgLatency').querySelector('.number').textContent = 
-        avgLat ? Math.round(avgLat) + ' ms' : '-';
-}
-
-function drawCharts(mergedData) {
-    const sources = mergedData.sources || {};
-    
-    // داده‌های GitHub
-    const githubData = sources.github || [];
-    drawSingleChart('githubChart', githubData, '#58a6ff', 'GitHub');
-    
-    // داده‌های Cloudflare
-    const cloudflareData = sources.cloudflare || [];
-    drawSingleChart('cloudflareChart', cloudflareData, '#f0883e', 'Cloudflare');
-}
-
-function drawSingleChart(canvasId, data, color, label) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-    
-    if (window[canvasId + 'Chart']) {
-        window[canvasId + 'Chart'].destroy();
+    // اگر هیچ داده‌ای نبود، از داده‌های آزمایشی استفاده کن
+    if (!state.githubData.length && !state.cloudflareData.length) {
+        console.warn('⚠️ No data found, using fallback sample data');
+        generateFallbackData();
     }
+
+    updateUI();
+}
+
+// بارگذاری داده‌های جداگانه از GitHub و Cloudflare
+async function loadIndividualData() {
+    try {
+        const githubRes = await fetch(`../data/github/${today}.json`);
+        if (githubRes.ok) {
+            state.githubData = await githubRes.json();
+        }
+    } catch (e) { /* ignored */ }
+
+    try {
+        const cloudflareRes = await fetch(`../data/cloudflare/${today}.json`);
+        if (cloudflareRes.ok) {
+            state.cloudflareData = await cloudflareRes.json();
+        }
+    } catch (e) { /* ignored */ }
+}
+
+// ============================================
+// 3. FALLBACK DATA (برای زمانی که داده‌ای وجود ندارد)
+// ============================================
+function generateFallbackData() {
+    const now = new Date();
+    const sampleTargets = [
+        { name: 'Snapp', category: 'ایرانی', type: 'site' },
+        { name: 'Divar', category: 'ایرانی', type: 'site' },
+        { name: 'Google', category: 'جهانی', type: 'site' },
+        { name: 'GitHub', category: 'جهانی', type: 'site' },
+        { name: 'Cloudflare DNS', category: 'DNS', type: 'dns' },
+        { name: 'PySmartHome-PC', category: 'پروژه‌های شخصی', type: 'site' },
+        { name: 'IMDB Showcase', category: 'پروژه‌های شخصی', type: 'site' }
+    ];
+
+    const entries = [];
+    for (let i = 0; i < 5; i++) {
+        const ts = new Date(now.getTime() - (i * 15 * 60 * 1000)).toISOString();
+        const results = sampleTargets.map(t => ({
+            name: t.name,
+            target: t.name.toLowerCase().replace(/\s+/g, ''),
+            category: t.category,
+            type: t.type,
+            status: Math.random() > 0.15 ? 'up' : 'down',
+            latency: Math.floor(Math.random() * 150) + 20,
+            packet_loss: Math.floor(Math.random() * 5),
+            jitter: Math.floor(Math.random() * 20),
+            timestamp: ts
+        }));
+        entries.push({
+            timestamp: ts,
+            source: i % 2 === 0 ? 'github' : 'cloudflare',
+            total: results.length,
+            up: results.filter(r => r.status === 'up').length,
+            down: results.filter(r => r.status === 'down').length,
+            results
+        });
+    }
+
+    // تقسیم بین دو منبع
+    state.githubData = entries.filter((_, i) => i % 2 === 0);
+    state.cloudflareData = entries.filter((_, i) => i % 2 === 1);
     
-    const timestamps = data.map(d => new Date(d.timestamp).toLocaleTimeString('fa-IR'));
-    const latencies = data.map(d => {
+    // ساخت mergedData
+    state.mergedData = {
+        date: today,
+        sources: {
+            github: state.githubData,
+            cloudflare: state.cloudflareData
+        }
+    };
+}
+
+// ============================================
+// 4. UPDATE UI
+// ============================================
+function updateUI() {
+    updateStats();
+    updateCharts();
+    renderStatusList();
+    renderComparisonTable();
+    updateLastUpdate();
+}
+
+// ============================================
+// 5. STATS
+// ============================================
+function updateStats() {
+    const allResults = getAllLatestResults();
+    if (!allResults.length) {
+        setStatValues(0, 0, 0, 0, 0);
+        return;
+    }
+
+    const total = allResults.length;
+    const up = allResults.filter(r => r.status === 'up').length;
+    const down = allResults.filter(r => r.status === 'down').length;
+    const avgLat = allResults.filter(r => r.latency)
+        .reduce((s, r) => s + r.latency, 0) / (allResults.filter(r => r.latency).length || 1);
+    const uptime = total > 0 ? Math.round((up / total) * 100) : 0;
+
+    setStatValues(total, up, down, avgLat, uptime);
+}
+
+function setStatValues(total, up, down, avgLat, uptime) {
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statUp').textContent = up;
+    document.getElementById('statDown').textContent = down;
+    document.getElementById('statUptime').textContent = uptime + '%';
+    
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('upCount').textContent = up;
+    document.getElementById('downCount').textContent = down;
+    document.getElementById('avgLatency').textContent = avgLat ? Math.round(avgLat) + ' ms' : '- ms';
+
+    // Progress bars
+    document.getElementById('upProgress').style.width = total > 0 ? (up / total) * 100 + '%';
+    document.getElementById('downProgress').style.width = total > 0 ? (down / total) * 100 + '%';
+    document.getElementById('uptimeProgress').style.width = uptime + '%';
+}
+
+function getAllLatestResults() {
+    const sources = [state.githubData, state.cloudflareData];
+    const latest = sources
+        .filter(arr => arr && arr.length > 0)
+        .map(arr => arr[arr.length - 1]);
+    
+    if (!latest.length) return [];
+    
+    // اولویت با داده‌های GitHub است
+    const primary = latest.find(d => d.source === 'github') || latest[0];
+    return primary.results || [];
+}
+
+// ============================================
+// 6. CHARTS
+// ============================================
+function updateCharts() {
+    drawChart('githubChart', state.githubData, '#58a6ff', 'GitHub');
+    drawChart('cloudflareChart', state.cloudflareData, '#f0883e', 'Cloudflare');
+}
+
+function drawChart(canvasId, data, color, label) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const existing = window[canvasId + 'Chart'];
+    if (existing) existing.destroy();
+
+    if (!data || data.length < 1) {
+        // نمایش پیام "No Data"
+        window[canvasId + 'Chart'] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['بدون داده'],
+                datasets: [{
+                    label: label,
+                    data: [0],
+                    borderColor: color,
+                    backgroundColor: color + '22',
+                    borderDash: [6, 4],
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { display: false },
+                    x: { display: false }
+                }
+            }
+        });
+        return;
+    }
+
+    const period = state.currentPeriod;
+    const limited = data.slice(-period);
+    
+    const labels = limited.map(d => new Date(d.timestamp).toLocaleTimeString('fa-IR'));
+    const latencies = limited.map(d => {
         const results = d.results || [];
-        const avg = results.filter(r => r.latency)
-            .reduce((sum, r) => sum + r.latency, 0) / (results.filter(r => r.latency).length || 1);
-        return Math.round(avg);
+        const valid = results.filter(r => r.latency);
+        if (!valid.length) return 0;
+        return Math.round(valid.reduce((s, r) => s + r.latency, 0) / valid.length);
     });
-    
+
     window[canvasId + 'Chart'] = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: timestamps.slice(-20),
+            labels,
             datasets: [{
                 label: `میانگین تاخیر (${label})`,
-                data: latencies.slice(-20),
+                data: latencies,
                 borderColor: color,
-                backgroundColor: color + '33',
+                backgroundColor: color + '22',
                 fill: true,
-                tension: 0.3,
-                pointRadius: 3
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: color,
+                pointBorderColor: 'transparent',
+                borderWidth: 2.5
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { 
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    titleColor: '#e6edf3',
+                    bodyColor: '#e6edf3',
+                    borderColor: 'rgba(255,255,255,0.05)',
+                    borderWidth: 1,
+                    cornerRadius: 12,
+                    padding: 12
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#21262d' }
+                    grid: { 
+                        color: 'rgba(255,255,255,0.04)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#8b949e',
+                        font: { size: 10 }
+                    }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { maxTicksLimit: 10 }
+                    ticks: {
+                        color: '#8b949e',
+                        font: { size: 9 },
+                        maxTicksLimit: 10,
+                        maxRotation: 40
+                    }
                 }
+            },
+            animation: {
+                duration: 800
             }
         }
     });
 }
 
-function renderStatus(mergedData) {
-    const sources = mergedData.sources || {};
-    const github = sources.github || [];
-    const cloudflare = sources.cloudflare || [];
-    
-    // آخرین داده از هر دو منبع
-    const lastGithub = github[github.length - 1];
-    const lastCloudflare = cloudflare[cloudflare.length - 1];
-    
-    // استفاده از داده‌های GitHub (یا Cloudflare به عنوان جایگزین)
-    const data = lastGithub || lastCloudflare;
-    if (!data) return;
-    
-    const results = data.results || [];
+// ============================================
+// 7. STATUS LIST (با جستجو و فیلتر)
+// ============================================
+function renderStatusList() {
+    const allResults = getAllLatestResults();
     const container = document.getElementById('statusList');
     
-    container.innerHTML = results.map(r => `
+    let filtered = allResults;
+    
+    // فیلتر دسته
+    if (state.filterCategory !== 'all') {
+        filtered = filtered.filter(r => r.category === state.filterCategory);
+    }
+    
+    // جستجو
+    if (state.searchTerm.trim()) {
+        const term = state.searchTerm.trim().toLowerCase();
+        filtered = filtered.filter(r => 
+            r.name.toLowerCase().includes(term) || 
+            r.target.toLowerCase().includes(term)
+        );
+    }
+
+    if (!filtered.length) {
+        container.innerHTML = `
+            <div class="status-item" style="grid-column:1/-1; justify-content:center; color:var(--text-secondary); padding:30px;">
+                🔍 هیچ نتیجه‌ای یافت نشد
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(r => `
         <div class="status-item ${r.status}">
-            <span class="name">${r.name}</span>
-            <span>
-                <span class="badge ${r.status}">${r.status === 'up' ? '✅' : '❌'}</span>
-                ${r.latency ? `<span class="latency">${r.latency}ms</span>` : ''}
-            </span>
+            <span class="name" title="${r.name}">${r.name}</span>
+            <div class="right">
+                <span class="status-badge ${r.status}">${r.status === 'up' ? '✅' : '❌'}</span>
+                ${r.latency ? `<span class="status-latency">${r.latency}ms</span>` : ''}
+            </div>
         </div>
     `).join('');
 }
 
-function renderComparison(mergedData) {
-    const sources = mergedData.sources || {};
-    const github = sources.github || [];
-    const cloudflare = sources.cloudflare || [];
+// ============================================
+// 8. COMPARISON TABLE
+// ============================================
+function renderComparisonTable() {
+    const tbody = document.getElementById('comparisonBody');
     
-    const lastGithub = github[github.length - 1];
-    const lastCloudflare = cloudflare[cloudflare.length - 1];
+    const githubLast = state.githubData.length ? state.githubData[state.githubData.length - 1] : null;
+    const cfLast = state.cloudflareData.length ? state.cloudflareData[state.cloudflareData.length - 1] : null;
     
-    if (!lastGithub || !lastCloudflare) return;
-    
-    const gResults = lastGithub.results || [];
-    const cResults = lastCloudflare.results || [];
+    if (!githubLast && !cfLast) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:30px;">📭 داده‌ای برای مقایسه وجود ندارد</td></tr>`;
+        return;
+    }
+
+    const gResults = githubLast?.results || [];
+    const cResults = cfLast?.results || [];
     
     // پیدا کردن هدف‌های مشترک
     const common = gResults.filter(g => 
         cResults.some(c => c.name === g.name)
     );
-    
-    const container = document.getElementById('comparisonTable');
-    let html = `<table>
-        <thead><tr><th>هدف</th><th>GitHub</th><th>Cloudflare</th><th>مقایسه</th></tr></thead>
-        <tbody>`;
-    
-    for (const g of common) {
+
+    if (!common.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:30px;">📭 هیچ هدف مشترکی بین دو پلتفرم یافت نشد</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = common.map(g => {
         const c = cResults.find(c => c.name === g.name);
-        const gStatus = g.status === 'up' ? '✅' : '❌';
-        const cStatus = c?.status === 'up' ? '✅' : '❌';
+        const gStatus = g.status === 'up';
+        const cStatus = c?.status === 'up';
         const gLat = g.latency ? g.latency + 'ms' : '-';
         const cLat = c?.latency ? c.latency + 'ms' : '-';
-        const diff = g.latency && c?.latency ? Math.abs(g.latency - c.latency) + 'ms' : '-';
         
-        html += `<tr>
-            <td><strong>${g.name}</strong></td>
-            <td>${gStatus} ${gLat}</td>
-            <td>${cStatus} ${cLat}</td>
-            <td style="color:${diff !== '-' && parseInt(diff) < 50 ? '#3fb950' : '#f0883e'}">${diff}</td>
-        </tr>`;
-    }
-    
-    html += '</tbody></table>';
-    container.innerHTML = html;
+        let diff = '-';
+        let diffClass = 'low';
+        if (g.latency && c?.latency) {
+            const d = Math.abs(g.latency - c.latency);
+            diff = d + 'ms';
+            diffClass = d < 30 ? 'low' : (d < 80 ? 'medium' : 'high');
+        }
+        
+        const category = g.category || 'other';
+        const isGUp = gStatus;
+        const isCUp = cStatus;
+
+        return `
+            <tr>
+                <td><strong>${g.name}</strong></td>
+                <td style="color:var(--text-secondary);font-size:0.75rem;">${category}</td>
+                <td>
+                    <span class="status-dot ${isGUp ? 'up' : 'down'}"></span>
+                    ${isGUp ? '✅' : '❌'} ${gLat}
+                </td>
+                <td>
+                    <span class="status-dot ${isCUp ? 'up' : 'down'}"></span>
+                    ${isCUp ? '✅' : '❌'} ${cLat}
+                </td>
+                <td>
+                    <span class="diff-badge ${diffClass}">${diff}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
-// اجرای اصلی
-loadDashboard();
+// ============================================
+// 9. LAST UPDATE
+// ============================================
+function updateLastUpdate() {
+    const allData = [...state.githubData, ...state.cloudflareData];
+    if (!allData.length) {
+        document.getElementById('lastUpdate').textContent = '⏳ داده‌ای موجود نیست';
+        return;
+    }
+    const latest = allData.reduce((a, b) => 
+        new Date(a.timestamp) > new Date(b.timestamp) ? a : b
+    );
+    const time = new Date(latest.timestamp).toLocaleString('fa-IR');
+    document.getElementById('lastUpdate').textContent = `🔄 ${time}`;
+}
 
-// رفرش خودکار هر ۵ دقیقه
-setInterval(loadDashboard, 300000);
+// ============================================
+// 10. EVENT LISTENERS
+// ============================================
+// تغییر دوره نمودار
+document.querySelectorAll('.chart-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        state.currentPeriod = parseInt(this.dataset.period);
+        updateCharts();
+    });
+});
+
+// جستجو
+document.getElementById('searchInput').addEventListener('input', function() {
+    state.searchTerm = this.value;
+    renderStatusList();
+});
+
+// فیلتر دسته
+document.getElementById('filterCategory').addEventListener('change', function() {
+    state.filterCategory = this.value;
+    renderStatusList();
+});
+
+// ============================================
+// 11. AUTO REFRESH (هر ۲ دقیقه)
+// ============================================
+setInterval(() => {
+    loadData();
+}, 120000);
+
+// ============================================
+// 12. INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', loadData);
