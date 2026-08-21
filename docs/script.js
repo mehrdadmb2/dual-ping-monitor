@@ -1,5 +1,5 @@
 // ============================================================
-// DUAL PING MONITOR - نسخه نهایی (بدون خطای نحوی)
+// DUAL PING MONITOR - نسخه با پشتیبانی از هر دو ساختار داده
 // ============================================================
 
 // STATE
@@ -25,16 +25,59 @@ function errorLog(msg, err) {
     console.error('[DPM] ❌ ' + msg, err || '');
 }
 
+// NORMALIZE DATA (تبدیل ساختار قدیمی به جدید)
+function normalizeEntry(entry) {
+    if (!entry) return null;
+    
+    // اگر ساختار جدید باشد، همان را برمی‌گردانیم
+    if (entry.source === 'github' || entry.source === 'cloudflare') {
+        return entry;
+    }
+    
+    // ساختار قدیمی (github-actions یا cloudflare-worker)
+    var results = (entry.results || []).map(function(r) {
+        return {
+            name: r.name || r.title || 'Unknown',
+            target: r.url || r.target || r.ip || '',
+            category: r.category || (r.type === 'dns' ? 'DNS' : 'سایر'),
+            type: r.type || 'site',
+            status: r.status || 'down',
+            latency: r.latency || null,
+            packet_loss: r.packet_loss !== undefined ? r.packet_loss : 0,
+            jitter: r.jitter || 0,
+            timestamp: r.timestamp || entry.timestamp
+        };
+    });
+    
+    return {
+        timestamp: entry.timestamp || new Date().toISOString(),
+        source: entry.source === 'cloudflare-worker' ? 'cloudflare' : 'github',
+        total: results.length,
+        up: results.filter(function(r) { return r.status === 'up'; }).length,
+        down: results.filter(function(r) { return r.status === 'down'; }).length,
+        results: results
+    };
+}
+
 // LOAD DATA
 async function loadData() {
     log('🔄 Starting data load...');
     try {
         var mergedRes = await fetch('../data/merged/' + today + '.json');
         if (mergedRes.ok) {
-            state.mergedData = await mergedRes.json();
+            var rawData = await mergedRes.json();
+            state.mergedData = rawData;
+            
+            // نرمال‌سازی داده‌ها
+            if (rawData.sources) {
+                state.githubData = (rawData.sources.github || []).map(normalizeEntry).filter(function(e) { return e; });
+                state.cloudflareData = (rawData.sources.cloudflare || []).map(normalizeEntry).filter(function(e) { return e; });
+            } else {
+                // اگر ساختار merged قدیمی بود
+                state.githubData = [];
+                state.cloudflareData = [];
+            }
             log('✅ Merged data loaded');
-            state.githubData = state.mergedData.sources?.github || [];
-            state.cloudflareData = state.mergedData.sources?.cloudflare || [];
         } else {
             log('⚠️ Merged data not found, trying individual...');
             await loadIndividualData();
@@ -44,8 +87,21 @@ async function loadData() {
         await loadIndividualData();
     }
 
-    if (!state.githubData.length && !state.cloudflareData.length) {
-        log('⚠️ No data found, generating fallback...');
+    // اگر داده‌ای نبود یا خالی بود، از Fallback استفاده کن
+    var hasData = false;
+    if (state.githubData.length > 0 || state.cloudflareData.length > 0) {
+        hasData = true;
+        // بررسی کنید که داده‌ها خالی نباشند
+        var lastG = state.githubData.length ? state.githubData[state.githubData.length - 1] : null;
+        var lastC = state.cloudflareData.length ? state.cloudflareData[state.cloudflareData.length - 1] : null;
+        if ((lastG && (!lastG.results || !lastG.results.length)) && 
+            (lastC && (!lastC.results || !lastC.results.length))) {
+            hasData = false;
+        }
+    }
+    
+    if (!hasData) {
+        log('⚠️ No valid data found, generating fallback...');
         generateFallbackData();
     }
 
@@ -58,7 +114,13 @@ async function loadIndividualData() {
     try {
         var githubRes = await fetch('../data/github/' + today + '.json');
         if (githubRes.ok) {
-            state.githubData = await githubRes.json();
+            var rawData = await githubRes.json();
+            // اگر آرایه است، همه را نرمال‌سازی کن
+            if (Array.isArray(rawData)) {
+                state.githubData = rawData.map(normalizeEntry).filter(function(e) { return e; });
+            } else {
+                state.githubData = [normalizeEntry(rawData)].filter(function(e) { return e; });
+            }
             log('✅ GitHub data (' + state.githubData.length + ' entries)');
         }
     } catch (e) {
@@ -68,7 +130,12 @@ async function loadIndividualData() {
     try {
         var cfRes = await fetch('../data/cloudflare/' + today + '.json');
         if (cfRes.ok) {
-            state.cloudflareData = await cfRes.json();
+            var rawData = await cfRes.json();
+            if (Array.isArray(rawData)) {
+                state.cloudflareData = rawData.map(normalizeEntry).filter(function(e) { return e; });
+            } else {
+                state.cloudflareData = [normalizeEntry(rawData)].filter(function(e) { return e; });
+            }
             log('✅ Cloudflare data (' + state.cloudflareData.length + ' entries)');
         }
     } catch (e) {
@@ -381,7 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
     log('🚀 DOM ready, initializing...');
     loadData();
 
-    // Chart period buttons
     var chartBtns = document.querySelectorAll('.chart-btn');
     for (var i = 0; i < chartBtns.length; i++) {
         chartBtns[i].addEventListener('click', function() {
@@ -395,19 +461,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Search input
     document.getElementById('searchInput').addEventListener('input', function() {
         state.searchTerm = this.value;
         renderStatusList();
     });
 
-    // Category filter
     document.getElementById('filterCategory').addEventListener('change', function() {
         state.filterCategory = this.value;
         renderStatusList();
     });
 
-    // Auto refresh every 30 seconds
     setInterval(function() {
         log('🔄 Auto-refresh');
         loadData();
