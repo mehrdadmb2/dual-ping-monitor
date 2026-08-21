@@ -20,10 +20,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Merge data
-        run: |
-          mkdir -p data/merged
-          node .github/scripts/merge.js
+      - name: Merge
+        run: node .github/scripts/merge.js
 
       - name: Commit merged data
         run: |
