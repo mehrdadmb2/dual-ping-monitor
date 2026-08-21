@@ -18,7 +18,13 @@
     { "name": "Cloudflare", "url": "cloudflare.com", "category": "جهانی" },
     { "name": "Wikipedia", "url": "wikipedia.org", "category": "جهانی" },
     { "name": "ChatGPT", "url": "chatgpt.com", "category": "جهانی" },
-    { "name": "X (Twitter)", "url": "x.com", "category": "جهانی" }
+    { "name": "X (Twitter)", "url": "x.com", "category": "جهانی" },
+    { "name": "PySmartHome-PC", "url": "mehrdadmb2.github.io/PySmartHome-PC", "category": "پروژه‌های شخصی" },
+    { "name": "IMDB Showcase", "url": "mehrdadmb2.github.io/imdb-showcase", "category": "پروژه‌های شخصی" },
+    { "name": "V2ray Sub", "url": "mehrdadmb2.github.io/V2ray_Sub", "category": "پروژه‌های شخصی" },
+    { "name": "SMS Bomber Pro", "url": "mehrdadmb2.github.io/SMS-Bomber-Pro", "category": "پروژه‌های شخصی" },
+    { "name": "GitHuby Card Studio", "url": "mehrdadmb2.github.io/githuby-card-studio", "category": "پروژه‌های شخصی" },
+    { "name": "Mehrdad Dev", "url": "mehrdadmb2.github.io/mehrdad-dev", "category": "پروژه‌های شخصی" }
   ],
   "dns": [
     { "name": "Cloudflare DNS", "ip": "1.1.1.1", "category": "DNS" },
