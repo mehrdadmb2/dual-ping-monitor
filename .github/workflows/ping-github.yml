@@ -3,7 +3,7 @@ name: GitHub Ping Monitor
 on:
   schedule:
     - cron: '*/10 * * * *'   # هر ۱۰ دقیقه
-  workflow_dispatch:          # اجرای دستی
+  workflow_dispatch:
 
 jobs:
   ping:
@@ -12,7 +12,7 @@ jobs:
       contents: write
       
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -20,10 +20,9 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Run ping script
+      - name: Run ping
         env:
           SOURCE: 'github'
-          BASE_DIR: '.'
         run: node .github/scripts/ping.js
 
       - name: Commit and push
