@@ -10498,5 +10498,355 @@
         "timestamp": "2026-08-25T20:39:51.623Z"
       }
     ]
+  },
+  {
+    "timestamp": "2026-08-25T21:01:27.177Z",
+    "source": "github",
+    "total": 31,
+    "up": 0,
+    "down": 31,
+    "results": [
+      {
+        "name": "Snapp",
+        "target": "snapp.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Divar",
+        "target": "divar.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Soft98",
+        "target": "soft98.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Tapsi",
+        "target": "tapsi.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Aparat",
+        "target": "aparat.com",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Rubika",
+        "target": "rubika.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Bale",
+        "target": "bale.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Eitaa",
+        "target": "eitaa.com",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Cafebazaar",
+        "target": "cafebazaar.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Digiato",
+        "target": "digiato.com",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Isna",
+        "target": "isna.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Mellat Bank",
+        "target": "mellat.ir",
+        "category": "ایرانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Google",
+        "target": "google.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "YouTube",
+        "target": "youtube.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "GitHub",
+        "target": "github.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Cloudflare",
+        "target": "cloudflare.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Wikipedia",
+        "target": "wikipedia.org",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "ChatGPT",
+        "target": "chatgpt.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "X (Twitter)",
+        "target": "x.com",
+        "category": "جهانی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "PySmartHome-PC",
+        "target": "mehrdadmb2.github.io/PySmartHome-PC",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "IMDB Showcase",
+        "target": "mehrdadmb2.github.io/imdb-showcase",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "V2ray Sub",
+        "target": "mehrdadmb2.github.io/V2ray_Sub",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "SMS Bomber Pro",
+        "target": "mehrdadmb2.github.io/SMS-Bomber-Pro",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "GitHuby Card Studio",
+        "target": "mehrdadmb2.github.io/githuby-card-studio",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Mehrdad Dev",
+        "target": "mehrdadmb2.github.io/mehrdad-dev",
+        "category": "پروژه‌های شخصی",
+        "type": "site",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Cloudflare DNS",
+        "target": "1.1.1.1",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Google DNS",
+        "target": "8.8.8.8",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "Quad9",
+        "target": "9.9.9.9",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "OpenDNS",
+        "target": "208.67.222.222",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "AdGuard DNS",
+        "target": "94.140.14.14",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      },
+      {
+        "name": "AliDNS",
+        "target": "223.5.5.5",
+        "category": "DNS",
+        "type": "dns",
+        "status": "down",
+        "latency": null,
+        "packet_loss": 100,
+        "jitter": null,
+        "timestamp": "2026-08-25T21:01:27.177Z"
+      }
+    ]
   }
 ]
