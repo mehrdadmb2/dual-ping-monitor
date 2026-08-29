@@ -1,0 +1,11 @@
+{
+  "name": "Dual Ping Monitor",
+  "short_name": "Dual Ping",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "dir": "rtl",
+  "lang": "fa",
+  "description": "Professional network telemetry dashboard"
+}

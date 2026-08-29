@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070a12">
+  <meta name="description" content="Dual Ping Monitor — داشبورد حرفه‌ای پایش دسترس‌پذیری، تاخیر و سلامت سرویس‌ها">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%236ee7ff'/%3E%3Cstop offset='1' stop-color='%23a78bfa'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%23070a12'/%3E%3Ccircle cx='50' cy='50' r='29' fill='none' stroke='url(%23g)' stroke-width='7'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%236ee7ff'/%3E%3Cpath d='M50 8v15M50 77v15M8 50h15M77 50h15' stroke='%23fff' stroke-width='5' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E">
+  <title>Dual Ping Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <nav class="topbar glass" aria-label="ناوبری">
+      <a class="brand" href="#top" aria-label="Dual Ping Monitor">
+        <span class="brand-orb"><span></span></span>
+        <span>
+          <strong>DUAL PING</strong>
+          <small>NETWORK OBSERVATORY</small>
+        </span>
+      </a>
+      <div class="top-actions">
+        <span class="live-pill" id="connectionPill"><i></i> ONLINE UI</span>
+        <button class="icon-btn" id="themeBtn" type="button" title="تغییر تم" aria-label="تغییر تم">◐</button>
+        <button class="icon-btn" id="refreshBtn" type="button" title="بروزرسانی" aria-label="بروزرسانی">↻</button>
+      </div>
+    </nav>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse-ring"></span> LIVE NETWORK TELEMETRY</div>
+        <h1>نبض شبکه را<br><span>در یک نگاه</span> ببین.</h1>
+        <p>پایش واقعی دسترس‌پذیری، تاخیر، خطاهای HTTP، packet loss و تاریخچهٔ اجراها؛ با تحمل خطا و بدون دیتای ساختگی.</p>
+        <div class="hero-actions">
+          <button class="primary-btn" id="jumpTargets" type="button">مشاهده وضعیت هدف‌ها <span>↓</span></button>
+          <button class="ghost-btn" id="diagnosticsBtn" type="button">تشخیص وضعیت</button>
+        </div>
+      </div>
+      <div class="radar-panel glass" aria-hidden="true">
+        <div class="radar-grid"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-core"><b></b><span>LIVE</span></div>
+        <div class="radar-dot dot-a"></div>
+        <div class="radar-dot dot-b"></div>
+        <div class="radar-dot dot-c"></div>
+        <div class="radar-caption">SIGNAL<br><strong id="heroSignal">SCANNING</strong></div>
+      </div>
+    </section>
+
+    <section class="control-deck glass">
+      <div class="control-group source-group">
+        <label for="sourceSelect">منبع داده</label>
+        <select id="sourceSelect">
+          <option value="github">GitHub Archive</option>
+          <option value="cloudflare">Cloudflare Edge</option>
+          <option value="compare">Compare</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="dateSelect">روز مشاهده</label>
+        <select id="dateSelect"><option value="latest">آخرین داده</option></select>
+      </div>
+      <div class="control-group search-control">
+        <label for="searchInput">جستجو</label>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="هدف، دامنه، IP...">
+      </div>
+      <div class="control-group">
+        <label for="categorySelect">دسته‌بندی</label>
+        <select id="categorySelect">
+          <option value="all">همه</option>
+          <option value="ایرانی">🇮🇷 ایرانی</option>
+          <option value="جهانی">🌍 جهانی</option>
+          <option value="پروژه‌های شخصی">💻 شخصی</option>
+          <option value="DNS">🧬 DNS</option>
+        </select>
+      </div>
+      <div class="control-group toggle-control">
+        <label>فقط مشکل‌دارها</label>
+        <button class="toggle" id="issuesOnly" type="button" aria-pressed="false"><span></span></button>
+      </div>
+      <div class="control-group toggle-control">
+        <label>بروزرسانی خودکار</label>
+        <button class="toggle active" id="autoRefresh" type="button" aria-pressed="true"><span></span></button>
+      </div>
+    </section>
+
+    <section class="status-banner glass" id="dataBanner">
+      <div class="banner-icon">⌁</div>
+      <div>
+        <strong id="bannerTitle">در حال بارگذاری telemetry…</strong>
+        <span id="bannerMessage">در حال بررسی آخرین snapshot واقعی.</span>
+      </div>
+      <div class="banner-meta"><span id="lastUpdated">—</span><span id="nextRefresh">Auto 120s</span></div>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card glass accent-cyan">
+        <div class="metric-top"><span>کل هدف‌ها</span><span class="metric-icon">◉</span></div>
+        <strong id="metricTotal">—</strong>
+        <div class="meter"><i id="meterTotal"></i></div>
+        <small>Targets tracked</small>
+      </article>
+      <article class="metric-card glass accent-green">
+        <div class="metric-top"><span>در دسترس</span><span class="metric-icon">✓</span></div>
+        <strong id="metricUp">—</strong>
+        <div class="meter"><i id="meterUp"></i></div>
+        <small id="metricUpPct">—</small>
+      </article>
+      <article class="metric-card glass accent-amber">
+        <div class="metric-top"><span>مشکوک / ناپایدار</span><span class="metric-icon">≈</span></div>
+        <strong id="metricDegraded">—</strong>
+        <div class="meter"><i id="meterDegraded"></i></div>
+        <small>Degraded responses</small>
+      </article>
+      <article class="metric-card glass accent-red">
+        <div class="metric-top"><span>قطع</span><span class="metric-icon">×</span></div>
+        <strong id="metricDown">—</strong>
+        <div class="meter"><i id="meterDown"></i></div>
+        <small id="metricDownPct">—</small>
+      </article>
+      <article class="metric-card glass accent-purple">
+        <div class="metric-top"><span>میانگین تأخیر</span><span class="metric-icon">⌁</span></div>
+        <strong id="metricLatency">—</strong>
+        <div class="latency-strip"><span id="latencyBadge">NO DATA</span></div>
+        <small>Across measured targets</small>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel glass chart-panel wide">
+        <header class="panel-head">
+          <div>
+            <span class="kicker">LATENCY TIMELINE</span>
+            <h2>روند تأخیر و سلامت اجراها</h2>
+          </div>
+          <div class="segmented" id="chartPeriod">
+            <button type="button" data-period="12" class="active">۲ ساعت</button>
+            <button type="button" data-period="36">۶ ساعت</button>
+            <button type="button" data-period="72">۱۲ ساعت</button>
+          </div>
+        </header>
+        <div class="chart-wrap"><canvas id="latencyChart"></canvas></div>
+        <div class="chart-foot">
+          <span><i class="legend-dot cyan"></i> میانگین</span>
+          <span><i class="legend-dot green"></i> دسترس‌پذیری</span>
+          <span><i class="legend-dot red"></i> خطایابی</span>
+          <span class="chart-stat" id="chartBest">Best —</span>
+          <span class="chart-stat" id="chartWorst">Worst —</span>
+        </div>
+      </article>
+
+      <article class="panel glass source-health">
+        <header class="panel-head"><div><span class="kicker">SOURCE HEALTH</span><h2>سلامت منابع</h2></div><span class="mini-status" id="sourceState">UNKNOWN</span></header>
+        <div class="source-card" id="githubSourceCard">
+          <div class="source-logo github">GH</div>
+          <div class="source-main"><strong>GitHub Actions</strong><span id="githubSourceTime">No snapshot</span></div>
+          <div class="source-score" id="githubSourceScore">—</div>
+        </div>
+        <div class="source-card" id="cloudflareSourceCard">
+          <div class="source-logo cf">CF</div>
+          <div class="source-main"><strong>Cloudflare Edge</strong><span id="cloudflareSourceTime">Not connected</span></div>
+          <div class="source-score" id="cloudflareSourceScore">—</div>
+        </div>
+        <div class="source-note" id="sourceNote">Cloudflare تا زمان تنظیم endpoint واقعی، «متصل نیست» نمایش داده می‌شود.</div>
+      </article>
+
+      <article class="panel glass wide">
+        <header class="panel-head">
+          <div><span class="kicker">TARGET MATRIX</span><h2>وضعیت لحظه‌ای هدف‌ها</h2></div>
+          <div class="view-tools"><span id="resultCount">0 targets</span><button id="viewToggle" type="button" class="small-btn">TABLE</button></div>
+        </header>
+        <div id="targetsGrid" class="targets-grid"></div>
+        <div id="targetsTableWrap" class="table-wrap hidden">
+          <table><thead><tr><th>Target</th><th>Category</th><th>Status</th><th>Latency</th><th>HTTP / Proto</th><th>Loss</th><th>Updated</th></tr></thead><tbody id="targetsTable"></tbody></table>
+        </div>
+      </article>
+
+      <article class="panel glass wide">
+        <header class="panel-head"><div><span class="kicker">EXECUTION HISTORY</span><h2>تاریخچه نمونه‌ها</h2></div><button id="exportBtn" type="button" class="small-btn">EXPORT CSV</button></header>
+        <div id="historyList" class="history-list"></div>
+      </article>
+    </section>
+
+    <footer class="footer glass">
+      <div><strong>DUAL PING MONITOR</strong><span>Built for real telemetry, not pretty fakes.</span></div>
+      <div class="footer-right"><span id="buildInfo">Schema v2</span><span>·</span><a href="https://github.com/mehrdadmb2/dual-ping-monitor" target="_blank" rel="noreferrer">GitHub Repository ↗</a></div>
+    </footer>
+  </main>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+  <dialog class="modal" id="diagnosticModal">
+    <div class="modal-inner">
+      <button class="modal-close" id="closeModal" type="button">×</button>
+      <span class="kicker">DIAGNOSTICS</span>
+      <h2>تشخیص وضعیت سیستم</h2>
+      <div id="diagnosticsBody" class="diagnostics-grid"></div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
