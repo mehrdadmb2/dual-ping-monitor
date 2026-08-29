@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="midnight">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b14">
+<meta name="description" content="Dual Ping Monitor — realtime network telemetry from GitHub Actions and Cloudflare edge.">
+<title>Dual Ping Monitor — Network Command Center</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true">
+  <div class="orb orb-a"></div><div class="orb orb-b"></div><div class="orb orb-c"></div>
+  <div class="grid-plane"></div><div class="noise"></div><div class="scan"></div><div class="cursor-orb"></div>
+  <div id="particleField"></div>
+</div>
+
+<div class="app">
+<header class="topbar glass" id="topbar">
+  <a class="brand" href="#overview">
+    <span class="brand-mark"><span class="brand-core"></span><i></i><i></i></span>
+    <span><b>DUAL PING</b><small>NETWORK COMMAND CENTER</small></span>
+  </a>
+  <nav class="nav">
+    <a class="nav-item active" href="#overview">Overview</a>
+    <a class="nav-item" href="#targets">Targets</a>
+    <a class="nav-item" href="#analytics">Analytics</a>
+    <a class="nav-item" href="#diagnostics">Diagnostics</a>
+  </nav>
+  <div class="top-tools">
+    <span id="connectionBadge" class="connection-badge"><i></i> SYNCING</span>
+    <button class="icon-btn" id="refreshBtn" title="Refresh">↻</button>
+    <button class="icon-btn" id="langBtn" title="Language">EN</button>
+    <button class="icon-btn" id="themeBtn" title="Theme">◐</button>
+    <button class="icon-btn menu-only" id="menuBtn" title="Menu">☰</button>
+  </div>
+</header>
+
+<main>
+<section id="overview" class="hero section">
+  <div class="hero-copy">
+    <div class="eyebrow"><span class="live-pip"></span> LIVE INFRASTRUCTURE TELEMETRY</div>
+    <h1>Know your network.<br><span>Before it breaks.</span></h1>
+    <p>One command center for origin-side and edge-side health. Compare uptime, latency, protocol behavior, recent incidents and historical trends without synthetic or hidden data.</p>
+    <div class="hero-actions">
+      <button class="btn primary magnetic" id="refreshHero"><span>Refresh telemetry</span><b>→</b></button>
+      <a class="btn ghost magnetic" target="_blank" rel="noopener" href="https://github.com/mehrdadmb2/dual-ping-monitor">Open repository <b>↗</b></a>
+    </div>
+    <div class="hero-facts">
+      <div><span>LAST SAMPLE</span><strong id="lastSample">—</strong></div>
+      <div><span>DATA SOURCES</span><strong id="sourceSummary">—</strong></div>
+      <div><span>REFRESH</span><strong id="refreshValue">—</strong></div>
+      <div><span>PAGE FETCH</span><strong id="fetchLatency">—</strong></div>
+    </div>
+  </div>
+
+  <div class="signal-card glass tilt" id="signalCard">
+    <div class="signal-head"><div><small>NETWORK SIGNAL</small><b id="signalHeadline">Awaiting telemetry</b></div><span id="signalChip" class="state-chip neutral">SYNCING</span></div>
+    <div class="signal-scene">
+      <div class="radar"><span class="r r1"></span><span class="r r2"></span><span class="r r3"></span><span class="cross h"></span><span class="cross v"></span><span class="sweep"></span><span class="core"></span></div>
+      <div id="signalNodes"></div>
+    </div>
+    <div class="signal-foot">
+      <span><i class="dot up"></i>UP <b id="radarUp">—</b></span>
+      <span><i class="dot degraded"></i>DEGRADED <b id="radarDegraded">—</b></span>
+      <span><i class="dot down"></i>DOWN <b id="radarDown">—</b></span>
+    </div>
+  </div>
+</section>
+
+<section class="stat-grid section">
+  <article class="metric glass tilt" data-tone="cyan"><header><span>Total targets</span><b>◎</b></header><strong id="mTotal">—</strong><footer><span>Tracked endpoints</span><em id="mTotalMeta">—</em></footer><div class="meter"><i id="mTotalBar"></i></div></article>
+  <article class="metric glass tilt" data-tone="green"><header><span>Healthy</span><b>✓</b></header><strong id="mUp">—</strong><footer><span>Successful probes</span><em id="mUpMeta">—</em></footer><div class="meter"><i id="mUpBar"></i></div></article>
+  <article class="metric glass tilt" data-tone="amber"><header><span>Degraded</span><b>△</b></header><strong id="mDeg">—</strong><footer><span>Warnings / partial</span><em id="mDegMeta">—</em></footer><div class="meter"><i id="mDegBar"></i></div></article>
+  <article class="metric glass tilt" data-tone="red"><header><span>Down</span><b>×</b></header><strong id="mDown">—</strong><footer><span>Failed probes</span><em id="mDownMeta">—</em></footer><div class="meter"><i id="mDownBar"></i></div></article>
+  <article class="metric glass tilt" data-tone="purple"><header><span>Average latency</span><b>⌁</b></header><strong id="mAvg">—<small>ms</small></strong><footer><span>Across measured targets</span><em id="mAvgMeta">—</em></footer><div class="meter"><i id="mAvgBar"></i></div></article>
+</section>
+
+<section class="section compare-grid">
+  <article class="panel glass tilt">
+    <div class="panel-head"><div><small class="kicker">DUAL PLANE</small><h2>Source comparison</h2></div><span class="muted">independent measurements</span></div>
+    <div class="source-compare">
+      <button class="source-tile selected" data-source="github">
+        <span class="source-logo gh">GH</span><span><b>GitHub Actions</b><small id="ghAge">No sample</small></span><strong id="ghScore">—</strong><i></i>
+      </button>
+      <button class="source-tile" data-source="cloudflare">
+        <span class="source-logo cf">CF</span><span><b>Cloudflare Edge</b><small id="cfAge">No sample</small></span><strong id="cfScore">—</strong><i></i>
+      </button>
+    </div>
+    <div class="compare-bars">
+      <div><span>Availability agreement</span><b id="agreeValue">—</b></div><div class="bar"><i id="agreeBar"></i></div>
+      <div><span>Latency delta</span><b id="deltaValue">—</b></div><div class="bar"><i id="deltaBar"></i></div>
+    </div>
+    <div class="micro-note" id="compareNote">Select a source to inspect its timeline and target state.</div>
+  </article>
+
+  <article class="panel glass tilt">
+    <div class="panel-head"><div><small class="kicker">INCIDENT RADAR</small><h2>What needs attention</h2></div><button class="tiny-btn" id="problemsBtn">Problems only</button></div>
+    <div class="incident-list" id="incidentList"><div class="empty-inline">No incidents detected.</div></div>
+  </article>
+</section>
+
+<section id="targets" class="panel glass section tilt">
+  <div class="panel-head">
+    <div><small class="kicker">LIVE MATRIX</small><h2>Target health</h2></div>
+    <div class="panel-tools">
+      <span class="result-count" id="resultCount">—</span>
+      <button class="tiny-btn active" id="gridMode">Grid</button><button class="tiny-btn" id="tableMode">Table</button>
+    </div>
+  </div>
+  <div class="filters">
+    <label class="search"><span>⌕</span><input id="search" placeholder="Search target, URL, category..." autocomplete="off"></label>
+    <select id="category"><option value="all">All categories</option></select>
+    <select id="status"><option value="all">All states</option><option value="up">UP</option><option value="degraded">DEGRADED</option><option value="down">DOWN</option></select>
+    <button class="tiny-btn" id="clearFilters">Reset</button>
+  </div>
+  <div id="targetsGrid" class="target-grid"></div>
+  <div id="targetsTable" class="table-wrap hidden"><table><thead><tr><th>Target</th><th>Status</th><th>Latency</th><th>HTTP</th><th>Source</th><th>Age</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+</section>
+
+<section id="analytics" class="analytics-grid section">
+  <article class="panel glass tilt chart-panel">
+    <div class="panel-head">
+      <div><small class="kicker">PERFORMANCE</small><h2>Latency timeline</h2></div>
+      <div class="range-tabs"><button data-range="24" class="active">24</button><button data-range="48">48</button><button data-range="96">96</button><button data-range="all">ALL</button></div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas><div id="chartTooltip" class="chart-tip"></div><span class="axis-label y">LATENCY / MS</span><span class="axis-label x">TIME</span></div>
+    <div class="chart-footer"><div><span>Selected average</span><b id="chartAvg">—</b></div><div><span>Trend</span><b id="chartTrend">—</b></div><div><span>Samples</span><b id="chartSamples">—</b></div></div>
+  </article>
+
+  <article class="panel glass tilt health-panel">
+    <div class="panel-head"><div><small class="kicker">SLA LENS</small><h2>Service score</h2></div><span id="slaState" class="state-chip neutral">—</span></div>
+    <div class="score-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="47" class="track"/><circle cx="60" cy="60" r="47" class="progress" id="slaRing"/></svg><div><b id="slaScore">—</b><small>availability</small></div></div>
+    <div class="health-breakdown">
+      <div><span>Healthy targets</span><b id="healthUp">—</b></div><div><span>Warning targets</span><b id="healthDeg">—</b></div><div><span>Failed targets</span><b id="healthDown">—</b></div>
+    </div>
+    <div class="threshold-box"><span>Latency posture</span><b id="latencyPosture">—</b><small>dynamic quality band based on observed average</small></div>
+  </article>
+</section>
+
+<section id="diagnostics" class="diag-grid section">
+  <article class="panel glass tilt">
+    <div class="panel-head"><div><small class="kicker">HISTORY</small><h2>Historical runs</h2></div><div class="panel-tools"><select id="historyDate"></select><button class="tiny-btn" id="exportHistory">Export JSON</button></div></div>
+    <div class="history-strip"><div><span>Runs</span><b id="histRuns">—</b></div><div><span>Best avg</span><b id="histBest">—</b></div><div><span>Worst avg</span><b id="histWorst">—</b></div><div><span>Observed uptime</span><b id="histUptime">—</b></div></div>
+    <div class="history-list" id="historyList"></div>
+  </article>
+
+  <article class="panel glass tilt">
+    <div class="panel-head"><div><small class="kicker">SYSTEM</small><h2>Diagnostics</h2></div><span id="infraChip" class="state-chip neutral">—</span></div>
+    <div class="diag-cards">
+      <div class="diag-source"><span class="source-logo gh">GH</span><div><b>GitHub telemetry</b><small id="ghState">—</small></div><strong id="ghUpdated">—</strong></div>
+      <div class="diag-source"><span class="source-logo cf">CF</span><div><b>Cloudflare telemetry</b><small id="cfState">—</small></div><strong id="cfUpdated">—</strong></div>
+    </div>
+    <dl class="kv"><div><dt>Worker</dt><dd id="workerUrl">—</dd></div><div><dt>Repository</dt><dd>mehrdadmb2/dual-ping-monitor</dd></div><div><dt>Schema</dt><dd id="schema">—</dd></div><div><dt>Last fetch</dt><dd id="lastFetch">—</dd></div></dl>
+    <div class="diag-actions"><button class="tiny-btn" id="healthBtn">Check worker health</button><a class="tiny-btn" target="_blank" rel="noopener" href="https://github.com/mehrdadmb2/dual-ping-monitor/actions">GitHub Actions ↗</a><a class="tiny-btn" target="_blank" rel="noopener" href="https://dual-ping-worker.game-developer-mb.workers.dev/">Worker preview ↗</a></div>
+  </article>
+</section>
+
+<footer class="footer glass">
+  <div><b>DUAL PING MONITOR</b><span>Truthful telemetry • origin + edge • responsive command center</span></div>
+  <div><span id="footerVersion">v4.0</span><a href="https://github.com/mehrdadmb2/dual-ping-monitor" target="_blank" rel="noopener">Source ↗</a></div>
+</footer>
+</main>
+</div>
+
+<dialog id="modal" class="modal">
+  <div class="modal-head"><div><small class="kicker">TARGET INSPECTOR</small><h2 id="modalName">Target</h2></div><button class="icon-btn" id="modalClose">×</button></div>
+  <div class="modal-url" id="modalUrl">—</div>
+  <div class="modal-grid">
+    <div><span>Status</span><b id="modalStatus">—</b></div><div><span>Latency</span><b id="modalLatency">—</b></div><div><span>HTTP</span><b id="modalHttp">—</b></div><div><span>Protocol</span><b id="modalProtocol">—</b></div>
+    <div><span>Method</span><b id="modalMethod">—</b></div><div><span>Packet loss</span><b id="modalLoss">—</b></div><div><span>Jitter</span><b id="modalJitter">—</b></div><div><span>Age</span><b id="modalAge">—</b></div>
+    <div class="wide"><span>Resolved URL</span><b id="modalResolved">—</b></div><div class="wide"><span>Error / note</span><b id="modalError">None</b></div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast-stack"></div>
+<script src="script.js"></script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{});}</script>
+</body>
+</html>
