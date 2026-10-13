@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "latest": "2026-10-13",
+  "generated_at": "2026-10-13T09:25:02.117Z",
+  "dates": [
+    "2026-10-13"
+  ],
+  "sources": {
+    "github": true,
+    "cloudflare": true
+  }
+}
