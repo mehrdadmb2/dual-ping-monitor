@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "probe_defaults": {
+    "site": "https",
+    "dns_test": "example.com",
+    "timeout_ms": 5000
+  },
+  "sites": [
+    { "id": "snapp", "name": "Snapp", "url": "https://snapp.ir", "category": "ایرانی" },
+    { "id": "divar", "name": "Divar", "url": "https://divar.ir", "category": "ایرانی" },
+    { "id": "soft98", "name": "Soft98", "url": "https://soft98.ir", "category": "ایرانی" },
+    { "id": "tapsi", "name": "Tapsi", "url": "https://tapsi.ir", "category": "ایرانی" },
+    { "id": "aparat", "name": "Aparat", "url": "https://aparat.com", "category": "ایرانی" },
+    { "id": "rubika", "name": "Rubika", "url": "https://rubika.ir", "category": "ایرانی" },
+    { "id": "bale", "name": "Bale", "url": "https://bale.ir", "category": "ایرانی" },
+    { "id": "eitaa", "name": "Eitaa", "url": "https://eitaa.com", "category": "ایرانی" },
+    { "id": "cafebazaar", "name": "Cafebazaar", "url": "https://cafebazaar.ir", "category": "ایرانی" },
+    { "id": "digiato", "name": "Digiato", "url": "https://digiato.com", "category": "ایرانی" },
+    { "id": "isna", "name": "Isna", "url": "https://isna.ir", "category": "ایرانی" },
+    { "id": "mellat", "name": "Mellat Bank", "url": "https://mellat.ir", "category": "ایرانی" },
+    { "id": "google", "name": "Google", "url": "https://google.com", "category": "جهانی" },
+    { "id": "youtube", "name": "YouTube", "url": "https://youtube.com", "category": "جهانی" },
+    { "id": "github", "name": "GitHub", "url": "https://github.com", "category": "جهانی" },
+    { "id": "cloudflare", "name": "Cloudflare", "url": "https://cloudflare.com", "category": "جهانی" },
+    { "id": "wikipedia", "name": "Wikipedia", "url": "https://wikipedia.org", "category": "جهانی" },
+    { "id": "chatgpt", "name": "ChatGPT", "url": "https://chatgpt.com", "category": "جهانی" },
+    { "id": "x", "name": "X (Twitter)", "url": "https://x.com", "category": "جهانی" },
+    { "id": "pysmart-home", "name": "PySmartHome-PC", "url": "https://mehrdadmb2.github.io/PySmartHome-PC", "category": "پروژه‌های شخصی" },
+    { "id": "imdb-showcase", "name": "IMDB Showcase", "url": "https://mehrdadmb2.github.io/imdb-showcase", "category": "پروژه‌های شخصی" },
+    { "id": "v2ray-sub", "name": "V2ray Sub", "url": "https://mehrdadmb2.github.io/V2ray_Sub", "category": "پروژه‌های شخصی" },
+    { "id": "sms-bomber", "name": "SMS Bomber Pro", "url": "https://mehrdadmb2.github.io/SMS-Bomber-Pro", "category": "پروژه‌های شخصی" },
+    { "id": "githuby-card", "name": "GitHuby Card Studio", "url": "https://mehrdadmb2.github.io/githuby-card-studio", "category": "پروژه‌های شخصی" },
+    { "id": "mehrdad-dev", "name": "Mehrdad Dev", "url": "https://mehrdadmb2.github.io/mehrdad-dev", "category": "پروژه‌های شخصی" }
+  ],
+  "dns": [
+    { "id": "cloudflare-dns", "name": "Cloudflare DNS", "ip": "1.1.1.1", "category": "DNS" },
+    { "id": "google-dns", "name": "Google DNS", "ip": "8.8.8.8", "category": "DNS" },
+    { "id": "quad9", "name": "Quad9", "ip": "9.9.9.9", "category": "DNS" },
+    { "id": "opendns", "name": "OpenDNS", "ip": "208.67.222.222", "category": "DNS" },
+    { "id": "adguard-dns", "name": "AdGuard DNS", "ip": "94.140.14.14", "category": "DNS" },
+    { "id": "alidns", "name": "AliDNS", "ip": "223.5.5.5", "category": "DNS" }
+  ]
+}

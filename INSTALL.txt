@@ -1,0 +1,17 @@
+DUAL PING MONITOR v2
+
+This bundle contains the files that should replace the current monitoring engine and dashboard.
+
+IMPORTANT:
+1. Delete/disable old workflows:
+   .github/workflows/ping-check.yml
+   .github/workflows/ping-github.yml
+   .github/workflows/merge-data.yml
+2. Copy this bundle's .github, docs, cloudflare, targets.json, README.md and MIGRATION.md into the repository root.
+3. Keep the existing data/ history. The included data/index.json is only the lightweight date index.
+4. Run Actions -> Dual Ping Monitor -> Run workflow once.
+5. Verify a new data/github/YYYY-MM-DD.json, data/merged/YYYY-MM-DD.json and data/index.json are committed.
+6. GitHub Pages should continue using main/docs.
+7. Cloudflare is optional; deploy cloudflare/worker.js and then set its URL from the dashboard's "تنظیم Cloudflare" button.
+
+No GitHub or Cloudflare secret is embedded in this bundle.
