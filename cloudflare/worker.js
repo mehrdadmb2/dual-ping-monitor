@@ -101,36 +101,70 @@ async function runProbe(env) {
   };
 }
 async function maybeStore(env, snapshot) {
-  // Optional KV binding: use it for the latest snapshot only. No fake history is generated.
-  if (env.MONITOR_KV) {
-    try { await env.MONITOR_KV.put('latest', JSON.stringify(snapshot), { expirationTtl: 604800 }); } catch (e) { console.error('KV write failed', e); }
+  if (!env.GH_TOKEN || !env.GH_REPO) {
+    const result = { ok: false, configured: false, reason: 'Set the GH_TOKEN secret and GH_REPO variable.' };
+    console.warn('[DPM] GitHub history persistence skipped: GH_TOKEN or GH_REPO is missing.');
+    return result;
   }
-  // Optional GitHub persistence. Configure GH_TOKEN as a Worker secret and GH_REPO/GH_BRANCH as vars.
-  if (!env.GH_TOKEN || !env.GH_REPO) return;
+
   const branch = env.GH_BRANCH || 'main';
   const day = snapshot.timestamp.slice(0, 10);
   const path = `data/cloudflare/${day}.json`;
   const api = `https://api.github.com/repos/${env.GH_REPO}/contents/${path}`;
-  const headers = { Authorization: `Bearer ${env.GH_TOKEN}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'DualPingMonitor-Worker' };
+  const headers = {
+    Authorization: `Bearer ${env.GH_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'DualPingMonitor-Worker'
+  };
+
   try {
     let sha, history = [];
     const existing = await fetch(`${api}?ref=${encodeURIComponent(branch)}`, { headers });
     if (existing.ok) {
-      const oldFile = await existing.json(); sha = oldFile.sha;
+      const oldFile = await existing.json();
+      sha = oldFile.sha;
       try {
-        const decoded = decodeURIComponent(escape(atob(String(oldFile.content || '').replace(/\s/g, ''))));
+        const base64 = String(oldFile.content || '').replace(/\s/g, '');
+        const decoded = decodeURIComponent(escape(atob(base64)));
         const parsed = JSON.parse(decoded);
         history = Array.isArray(parsed) ? parsed : (parsed && parsed.timestamp ? [parsed] : []);
-      } catch { history = []; }
-    } else if (existing.status !== 404) throw new Error(`GitHub read failed: ${existing.status}`);
-    // Preserve same-day time series for the dashboard. Keep at most 400 samples per day.
+      } catch (e) {
+        console.warn(`[DPM] Existing GitHub history could not be parsed; starting a fresh day file: ${String(e)}`);
+        history = [];
+      }
+    } else if (existing.status !== 404) {
+      const details = (await existing.text()).slice(0, 400);
+      throw new Error(`GitHub read failed: HTTP ${existing.status} ${details}`);
+    }
+
+    // One scheduled sample every five minutes; keep file sizes bounded.
     history.push(snapshot);
     history = history.slice(-400);
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(history, null, 2) + '\n')));
-    const write = await fetch(api, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `chore(monitor): Cloudflare snapshot ${snapshot.timestamp}`, content, branch, ...(sha ? { sha } : {}) }) });
-    if (!write.ok) throw new Error(`GitHub write failed: ${write.status} ${(await write.text()).slice(0, 200)}`);
-  } catch (e) { console.error('GitHub snapshot persistence failed', String(e)); }
+    const write = await fetch(api, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `chore(monitor): Cloudflare snapshot ${snapshot.timestamp}`,
+        content, branch, ...(sha ? { sha } : {})
+      })
+    });
+    if (!write.ok) {
+      const details = (await write.text()).slice(0, 400);
+      throw new Error(`GitHub write failed: HTTP ${write.status} ${details}`);
+    }
+
+    const result = { ok: true, configured: true, path, samples: history.length, branch };
+    console.log(`[DPM] GitHub history saved: ${path} (${history.length} samples, branch=${branch})`);
+    return result;
+  } catch (e) {
+    const message = String(e?.message || e);
+    console.error('[DPM] GitHub snapshot persistence failed:', message);
+    return { ok: false, configured: true, path, error: message };
+  }
 }
+
 async function latestFromKV(env) {
   if (!env.MONITOR_KV) return null;
   try { return await env.MONITOR_KV.get('latest', 'json'); } catch { return null; }
@@ -140,7 +174,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
     const url = new URL(request.url), path = url.pathname.replace(/\/+$/, '') || '/';
     if (request.method === 'GET' && ['/health', '/api/health'].includes(path)) {
-      return json({ ok: true, service: 'dual-ping-monitor-edge', version: VERSION, now: new Date().toISOString(), routes: ['/', '/health', '/api/status', '/api/probe'] });
+      return json({ ok: true, service: 'dual-ping-monitor-edge', version: VERSION, now: new Date().toISOString(), publisherConfigured: Boolean(env.GH_TOKEN && env.GH_REPO), publisher: 'github-contents-api', routes: ['/', '/health', '/api/status', '/api/config', '/api/probe'] });
     }
     if (request.method === 'GET' && ['/api/status', '/api/latest'].includes(path)) {
       const cached = await latestFromKV(env);
@@ -153,7 +187,8 @@ export default {
     }
     if (request.method === 'GET' && ['/','/api/status','/api/latest'].includes(path) || request.method === 'POST' && path === '/api/probe') {
       const snapshot = await runProbe(env);
-      ctx.waitUntil(maybeStore(env, snapshot));
+      // Live reads are deliberately not persisted. The five-minute scheduled trigger
+      // is the single source of history, preventing dashboard refreshes from spamming GitHub.
       return json(snapshot);
     }
     if (request.method === 'GET' && path === '/api/config') {
@@ -162,6 +197,8 @@ export default {
     return json({ ok: false, error: 'Not found', routes: ['GET /health','GET /api/status','GET /api/config','POST /api/probe'] }, 404);
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil((async () => { const snapshot = await runProbe(env); await maybeStore(env, snapshot); })());
+    const snapshot = await runProbe(env);
+    const result = await maybeStore(env, snapshot);
+    if (!result.ok) console.error('[DPM] Scheduled history write was not successful:', JSON.stringify(result));
   }
 };

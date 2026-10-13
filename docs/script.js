@@ -4,7 +4,8 @@
   const CONFIG = {
     refreshMs: 30000,
     historyDays: 14,
-    dataBase: '../data/',
+    // GitHub Pages publishes /docs as the site root, so datasets must live in /docs/data/.
+    dataBase: 'data/',
     cloudflareEndpoint: localStorage.getItem('dpm-cloudflare-endpoint') || 'https://dual-ping-worker.game-developer-mb.workers.dev',
     storageKey: 'dpm-ui-v3'
   };
@@ -95,7 +96,13 @@
     try {
       const index = await fetchJson(`${CONFIG.dataBase}index.json`);
       state.index = index;
-      if (index?.latest) return index.latest;
+      if (index?.latest) {
+        // Do not trust a stale index until its corresponding merged file can actually be loaded.
+        try {
+          await fetchJson(`${CONFIG.dataBase}merged/${index.latest}.json`, 3500);
+          return index.latest;
+        } catch (_) {}
+      }
     } catch (_) {}
 
     const base = new Date();
@@ -116,29 +123,52 @@
     updateSystem('loading', 'در حال دریافت');
     try {
       const date = await discoverDate();
-      if (!date) throw new Error('No dataset found');
-      state.date = date;
-      const mergedRaw = await fetchJson(`${CONFIG.dataBase}merged/${date}.json`);
-      state.merged = mergedRaw;
-      state.github = Array.isArray(mergedRaw?.sources?.github)
-        ? mergedRaw.sources.github.map(x => normalizeSnapshot(x, 'github')).filter(Boolean)
-        : [];
-      state.cloudflare = Array.isArray(mergedRaw?.sources?.cloudflare)
-        ? mergedRaw.sources.cloudflare.map(x => normalizeSnapshot(x, 'cloudflare')).filter(Boolean)
-        : [];
+      state.date = date || new Date().toISOString().slice(0, 10);
+      state.merged = null;
+      state.github = [];
+      state.cloudflare = [];
+
+      if (date) {
+        const mergedRaw = await fetchJson(`${CONFIG.dataBase}merged/${date}.json`);
+        state.merged = mergedRaw;
+        state.github = Array.isArray(mergedRaw?.sources?.github)
+          ? mergedRaw.sources.github.map(x => normalizeSnapshot(x, 'github')).filter(Boolean)
+          : [];
+        state.cloudflare = Array.isArray(mergedRaw?.sources?.cloudflare)
+          ? mergedRaw.sources.cloudflare.map(x => normalizeSnapshot(x, 'cloudflare')).filter(Boolean)
+          : [];
+      }
 
       state.github = state.github.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       state.cloudflare = state.cloudflare.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       state.sourceLatest.github = latestSnapshot(state.github, 'github');
       state.sourceLatest.cloudflare = latestSnapshot(state.cloudflare, 'cloudflare');
+    } catch (error) {
+      // A missing static history file must not prevent the live Worker from populating the dashboard.
+      console.warn('[DPM] saved history unavailable; falling back to live edge data:', error.message);
+      state.merged = null;
+      state.github = [];
+      state.cloudflare = [];
+      state.sourceLatest.github = null;
+      state.sourceLatest.cloudflare = null;
+      state.date = new Date().toISOString().slice(0, 10);
+    }
 
+    try {
       await tryCloudflareEdge();
       render();
-      updateSystem(state.github.length ? 'ok' : 'warn', state.github.length ? 'اتصال برقرار' : 'داده محدود');
+      const hasData = Boolean(state.sourceLatest.github || state.sourceLatest.cloudflare);
+      if (!hasData) {
+        updateSystem('error', 'دریافت ناموفق');
+        renderEmpty('نه تاریخچه‌ی ذخیره‌شده پیدا شد و نه Worker زنده پاسخ داد. مسیر داده و وضعیت Worker را بررسی کنید.');
+      } else if (state.github.length) {
+        updateSystem('ok', 'اتصال برقرار');
+      } else {
+        updateSystem('warn', 'داده‌ی زنده از Cloudflare');
+      }
     } catch (error) {
-      console.error('[DPM] load failed', error);
+      console.error('[DPM] live edge load failed', error);
       updateSystem('error', 'دریافت ناموفق');
-      renderEmpty(`داده‌ها قابل دریافت نیستند: ${error.message}`);
     } finally {
       state.refreshing = false;
     }
@@ -152,6 +182,7 @@
       if (edge) {
         state.sourceLatest.cloudflare = edge;
         state.cloudflare.push(edge);
+        state.cloudflare = state.cloudflare.slice(-400);
         state.cloudflare.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       }
     } catch (error) {
@@ -159,9 +190,13 @@
     }
   }
 
+  function getPreferredSnapshot() {
+    const candidates = [state.sourceLatest.github, state.sourceLatest.cloudflare].filter(Boolean);
+    return candidates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+  }
+
   function getPrimaryResults() {
-    const snap = state.sourceLatest.github || state.sourceLatest.cloudflare;
-    return snap?.results || [];
+    return getPreferredSnapshot()?.results || [];
   }
 
   function getFilteredResults() {
@@ -177,7 +212,7 @@
   }
 
   function render() {
-    const latest = state.sourceLatest.github || state.sourceLatest.cloudflare;
+    const latest = getPreferredSnapshot();
     const results = latest?.results || [];
     const up = results.filter(r => r.status === 'up').length;
     const down = results.length - up;

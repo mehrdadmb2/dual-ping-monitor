@@ -7,12 +7,12 @@
 5. Add the Cloudflare Worker secret with `cd cloudflare; npx wrangler secret put GH_TOKEN`. Use a fine-grained token scoped only to this repository and Contents read/write. Never commit the token.
 6. Verify `https://dual-ping-worker.game-developer-mb.workers.dev/health` returns `ok: true`.
 7. Verify `/api/status` returns a `results` array and real latency/status values.
-8. In GitHub → Actions, run **Dual Ping Monitor** manually. Confirm it commits `data/github/`, `data/cloudflare/`, `data/merged/` and `data/index.json`.
+8. In GitHub → Actions, run **Dual Ping Monitor** manually. Confirm it commits `data/github/`, `data/cloudflare/`, `data/merged/`, `data/index.json`, and their published copies under `docs/data/`.
 9. Open `https://mehrdadmb2.github.io/dual-ping-monitor/` and hard-refresh (`Ctrl+F5`). Cloudflare endpoint is preconfigured in the dashboard.
 
 ## If data is still missing
 - Check Worker logs: `cd cloudflare; npx wrangler tail`.
 - Check GitHub Actions logs for `Dual Ping Monitor`.
 - Check Worker secret is named exactly `GH_TOKEN`; check token scope and repository access.
-- Check Pages is configured to publish `/docs`.
+- Check Pages is configured to publish `/docs`. Static data must be mirrored under `docs/data/`; the workflow now does this automatically.
 - Do not expect Cloudflare ICMP metrics: Workers support HTTP/HTTPS fetch probes, not raw ICMP sockets.

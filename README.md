@@ -52,4 +52,4 @@ The root URL also returns a live snapshot for compatibility with the dashboard. 
 Add a `TARGETS_JSON` variable in Worker Settings → Variables. Use a JSON array of objects with `id`, `name`, `url`, and optional `category`. Only HTTP/HTTPS targets are accepted; obvious localhost/private-network and cloud metadata addresses are rejected. Limit to 30 targets and keep the timeout/schedule reasonable for your Cloudflare plan.
 
 ## Deploy checklist
-See `CLOUDFLARE-DEPLOY.md` and `MIGRATION.md` for exact steps. After deploy, run the GitHub Actions workflow manually and confirm the `data/index.json` and `data/merged/YYYY-MM-DD.json` files update.
+See `CLOUDFLARE-DEPLOY.md` and `MIGRATION.md` for exact steps. After deploy, run the GitHub Actions workflow manually and confirm both `data/index.json` and `docs/data/index.json` update, along with `data/merged/YYYY-MM-DD.json` and `docs/data/merged/YYYY-MM-DD.json`.
