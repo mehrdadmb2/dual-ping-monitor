@@ -53,3 +53,9 @@ Add a `TARGETS_JSON` variable in Worker Settings → Variables. Use a JSON array
 
 ## Deploy checklist
 See `CLOUDFLARE-DEPLOY.md` and `MIGRATION.md` for exact steps. After deploy, run the GitHub Actions workflow manually and confirm both `data/index.json` and `docs/data/index.json` update, along with `data/merged/YYYY-MM-DD.json` and `docs/data/merged/YYYY-MM-DD.json`.
+
+## GitHub Actions v3.1 reliability update
+
+The GitHub probe script uses asynchronous ICMP child processes so pings cannot block HTTP checks. It logs nested error details for failed targets. DNS provider checks use each provider's DNS-over-HTTPS endpoint over HTTP/2 rather than depending on raw ICMP or outbound UDP/TCP port 53 from the GitHub runner. The workflow rebases from `origin/main` and retries the push to avoid races with the independently scheduled Cloudflare Worker.
+
+See `ACTIONS-FIX.md` for update instructions and troubleshooting.

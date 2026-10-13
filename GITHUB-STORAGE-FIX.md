@@ -29,3 +29,18 @@
 - GitHub HTTP 403: token does not have Contents write permission, repository access is missing, or the API rate limit was reached.
 - GitHub HTTP 404 reading the file: often a branch/repository configuration issue. The code treats 404 for a new daily file as expected and then creates it.
 - The Worker has a file under root `data/` but Pages still shows no history: rerun the `Dual Ping Monitor` Actions workflow and confirm `docs/data/` is committed and Pages publishes `/docs`.
+
+## GitHub Actions fixes (v3.1)
+
+The current Actions workflow previously called `spawnSync('ping', ...)` repeatedly while probing every target. `spawnSync` blocks Node.js's event loop; during that time in-flight HTTP requests and timeout handlers cannot complete, which can produce false `DOWN` results and very long runs. The updated `ping.js` uses asynchronous child processes and prints the nested HTTP/DNS/TCP/ICMP error details for every failed target.
+
+The final workflow step also fetches and rebases `origin/main` and retries the push up to four times. This is required because Cloudflare's scheduled Worker independently writes snapshots to the same `main` branch. It intentionally does not force-push, so it cannot overwrite Worker history or other commits.
+
+Replace these two files in the repository:
+
+- `.github/scripts/ping.js`
+- `.github/workflows/monitor.yml`
+
+Then run **Actions → Dual Ping Monitor → Run workflow** manually. The probe step should finish much faster. If a target still fails, the log now prints the actual cause (for example DNS lookup failure, timeout, connection refusal, or ICMP permission restriction) instead of only `via none`.
+
+The v3.1 Action update also changes DNS targets to use provider-specific DNS-over-HTTPS endpoints over HTTP/2. In this mode, the DNS result is an actual DNS query through that provider; the ICMP/TCP 53 fields are not used for DNS records because those transports can be filtered from hosted CI runners.

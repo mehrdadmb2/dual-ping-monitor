@@ -33,11 +33,11 @@
     { "id": "mehrdad-dev", "name": "Mehrdad Dev", "url": "https://mehrdadmb2.github.io/mehrdad-dev", "category": "پروژه‌های شخصی" }
   ],
   "dns": [
-    { "id": "cloudflare-dns", "name": "Cloudflare DNS", "ip": "1.1.1.1", "category": "DNS" },
-    { "id": "google-dns", "name": "Google DNS", "ip": "8.8.8.8", "category": "DNS" },
-    { "id": "quad9", "name": "Quad9", "ip": "9.9.9.9", "category": "DNS" },
-    { "id": "opendns", "name": "OpenDNS", "ip": "208.67.222.222", "category": "DNS" },
-    { "id": "adguard-dns", "name": "AdGuard DNS", "ip": "94.140.14.14", "category": "DNS" },
-    { "id": "alidns", "name": "AliDNS", "ip": "223.5.5.5", "category": "DNS" }
+    { "id": "cloudflare-dns", "name": "Cloudflare DNS", "ip": "1.1.1.1", "doh_url": "https://cloudflare-dns.com/dns-query", "category": "DNS" },
+    { "id": "google-dns", "name": "Google DNS", "ip": "8.8.8.8", "doh_url": "https://dns.google/dns-query", "category": "DNS" },
+    { "id": "quad9", "name": "Quad9", "ip": "9.9.9.9", "doh_url": "https://dns.quad9.net/dns-query", "category": "DNS" },
+    { "id": "opendns", "name": "OpenDNS", "ip": "208.67.222.222", "doh_url": "https://doh.opendns.com/dns-query", "category": "DNS" },
+    { "id": "adguard-dns", "name": "AdGuard DNS", "ip": "94.140.14.14", "doh_url": "https://dns.adguard-dns.com/dns-query", "category": "DNS" },
+    { "id": "alidns", "name": "AliDNS", "ip": "223.5.5.5", "doh_url": "https://dns.alidns.com/dns-query", "category": "DNS" }
   ]
 }
