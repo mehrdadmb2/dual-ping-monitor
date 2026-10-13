@@ -41,11 +41,16 @@ jobs:
       - name: Build merged dataset and index
         run: node .github/scripts/merge.js
 
+      - name: Sync datasets into GitHub Pages publish directory
+        run: |
+          mkdir -p docs/data
+          cp -R data/. docs/data/
+
       - name: Commit monitoring data
         run: |
           git config user.name "Dual Ping Monitor Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ docs/data/
           if git diff --cached --quiet; then
             echo "No data changes to commit."
             exit 0
