@@ -5,8 +5,8 @@
     refreshMs: 30000,
     historyDays: 14,
     dataBase: '../data/',
-    cloudflareEndpoint: localStorage.getItem('dpm-cloudflare-endpoint') || '',
-    storageKey: 'dpm-ui-v2'
+    cloudflareEndpoint: localStorage.getItem('dpm-cloudflare-endpoint') || 'https://dual-ping-worker.game-developer-mb.workers.dev',
+    storageKey: 'dpm-ui-v3'
   };
 
   const state = {

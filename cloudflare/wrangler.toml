@@ -1,4 +1,19 @@
-name = "dual-ping-monitor-edge"
+name = "dual-ping-worker"
 main = "worker.js"
-compatibility_date = "2026-08-01"
+compatibility_date = "2026-10-01"
 workers_dev = true
+
+[vars]
+PROBE_TIMEOUT_MS = "9000"
+GH_REPO = "mehrdadmb2/dual-ping-monitor"
+GH_BRANCH = "main"
+# Optional exact origin restriction; Pages URL is shown below.
+# ALLOWED_ORIGINS = "https://mehrdadmb2.github.io"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Optional KV cache for the most recent snapshot:
+# [[kv_namespaces]]
+# binding = "MONITOR_KV"
+# id = "REPLACE_WITH_REAL_NAMESPACE_ID"

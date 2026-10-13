@@ -1,62 +1,55 @@
-# Dual Ping Monitor v2
+# Dual-Ping Monitor v3
 
-A resilient, dependency-light network observatory for websites and DNS services. The original project treated an ICMP failure as a complete outage, so GitHub Runner snapshots could report almost everything as `DOWN`. Version 2 changes the measurement model: HTTPS is the primary availability signal for websites, direct DNS resolution is primary for DNS targets, TCP/53 and ICMP are secondary signals, and the dashboard exposes which probe established availability.
+Dual-source monitoring dashboard using real HTTP/HTTPS probes from GitHub Actions and Cloudflare Workers. Static site is served from GitHub Pages (`/docs`). Cloudflare runs independent edge probes and can persist daily samples to `data/cloudflare/YYYY-MM-DD.json` through a GitHub token stored only as a Cloudflare Worker secret.
 
-## What changed
+## Important facts
+- Cloudflare Workers cannot send raw ICMP echo packets. Cloudflare metrics are genuine HTTP/HTTPS response checks; ICMP metrics are only available from the GitHub Actions runner where supported.
+- HTTP 4xx means the host answered and is counted as reachable; HTTP 5xx and transport/timeout failures are marked down in the current dashboard schema.
+- Dashboard values come from real JSON snapshots. If no dataset exists, it shows an error/no-data state rather than invented sample metrics.
 
-- **Resilient probing:** HTTPS + ICMP for sites; direct DNS + TCP/53 + ICMP for DNS.
-- **No false-down from blocked ICMP:** a reachable HTTPS service remains `UP` even when ICMP is filtered.
-- **Parallel checks with bounded concurrency:** faster runs without spawning an unbounded amount of work.
-- **Safer ping execution:** no shell interpolation of targets.
-- **Versioned dataset:** daily JSON snapshots plus a generated `data/index.json` for date discovery.
-- **Single scheduled workflow:** avoids the previous race between ping and merge jobs.
-- **Zero frontend framework:** no React/Vue/build step required.
-- **No Chart.js / Google Fonts dependency:** the dashboard uses native SVG charts and system fonts.
-- **Interactive dashboard:** search, category filters, sorting, detail modal, CSV/JSON export, auto-refresh, keyboard shortcuts, theme switch, Cloudflare endpoint support.
-- **Murphy-safe design:** the dashboard stays useful when one data source or one measurement method fails.
+## Repository contents
+- `docs/` — responsive interactive dashboard, charts, filters, detail panel, CSV/JSON export, theme and auto-refresh.
+- `.github/scripts/ping.js` — GitHub Actions probe engine.
+- `.github/scripts/merge.js` — merges source snapshots and updates the date index.
+- `.github/workflows/monitor.yml` — single scheduled GitHub runner workflow.
+- `cloudflare/worker.js` — Cloudflare Worker HTTP probe API, cron, optional KV cache, optional GitHub persistence.
+- `cloudflare/wrangler.toml` — Wrangler configuration.
+- `targets.json` — targets for GitHub runner checks.
 
-## Important migration step
+## Deploy GitHub Pages
+In repository Settings → Pages, choose Deploy from a branch → `main` → `/docs`. The workflow requires `contents: write` to commit monitoring snapshots using the built-in `GITHUB_TOKEN`. It does not deploy or configure Cloudflare.
 
-The old repository contains these workflows:
-
-- `.github/workflows/ping-check.yml`
-- `.github/workflows/ping-github.yml`
-- `.github/workflows/merge-data.yml`
-
-Remove or disable those three old workflows after installing `.github/workflows/monitor.yml`; otherwise multiple schedules will keep writing overlapping data.
-
-## GitHub Pages
-
-Keep the Pages source as `main` / `docs` (the existing project layout). Replace the contents of `docs/`, `.github/scripts/`, `targets.json` and add the new `.github/workflows/monitor.yml`. Historical files in `data/` can remain.
-
-After the workflow runs, the dashboard reads:
-
-- `../data/index.json`
-- `../data/merged/YYYY-MM-DD.json`
-
-and automatically falls back over the previous 14 UTC dates when the index is unavailable.
-
-## Optional Cloudflare Edge
-
-The Cloudflare Worker is intentionally optional. It performs independent HTTPS edge probes; arbitrary third-party DNS resolver probing is not falsely simulated because Cloudflare Workers do not expose raw UDP/TCP sockets to port 53. Deploy `cloudflare/worker.js` with `cloudflare/wrangler.toml`, then open the dashboard and use **تنظیم Cloudflare**. The endpoint is stored only in browser local storage; no secret is embedded into the Git repository.
-
-Example:
-
-```bash
+## Deploy Cloudflare Worker
+```powershell
 cd cloudflare
+npx wrangler login
 npx wrangler deploy
 ```
+The configured Worker name is `dual-ping-worker`. If the workers.dev subdomain remains `game-developer-mb`, the endpoint will be `https://dual-ping-worker.game-developer-mb.workers.dev`.
 
-The Worker returns the same v2 snapshot shape as GitHub Actions so the dashboard can compare two independent observation sources.
+### Enable Cloudflare-to-GitHub snapshot storage
+Create a fine-grained GitHub token restricted to `mehrdadmb2/dual-ping-monitor` with **Contents: Read and write**. Then, inside `cloudflare/`, run:
+```powershell
+npx wrangler secret put GH_TOKEN
+```
+Paste the token at the hidden prompt. Do not put the token in source files, GitHub Actions variables, `docs/`, or this repository. `GH_REPO` and `GH_BRANCH` are non-secret vars in `wrangler.toml`. The scheduled Worker stores a rolling array of samples per UTC day and the existing GitHub workflow merges that file into the dashboard dataset.
 
-## Data model
+### Optional KV cache
+```powershell
+npx wrangler kv namespace create DPM_MONITOR
+```
+Add the returned ID under `[[kv_namespaces]]` in `wrangler.toml`, uncomment the binding and deploy. KV stores the latest snapshot only; daily sample history remains in GitHub.
 
-Each target has a `status`, `latency`, `availability_basis`, and per-method diagnostics. A site can be `up` with `availability_basis=https` while `icmp_status=down`; this is deliberate and reflects real-world networks where ICMP is filtered.
+## Validate deployment
+```powershell
+curl.exe -i https://dual-ping-worker.game-developer-mb.workers.dev/health
+curl.exe -sS https://dual-ping-worker.game-developer-mb.workers.dev/api/status
+curl.exe -sS https://dual-ping-worker.game-developer-mb.workers.dev/api/config
+```
+The root URL also returns a live snapshot for compatibility with the dashboard. `/api/status` serves KV cache when configured, otherwise runs probes. `POST /api/probe` is disabled unless a `PROBE_TOKEN` secret is configured.
 
-## Operational behavior
+## Custom Cloudflare targets
+Add a `TARGETS_JSON` variable in Worker Settings → Variables. Use a JSON array of objects with `id`, `name`, `url`, and optional `category`. Only HTTP/HTTPS targets are accepted; obvious localhost/private-network and cloud metadata addresses are rejected. Limit to 30 targets and keep the timeout/schedule reasonable for your Cloudflare plan.
 
-The GitHub workflow runs every 10 minutes and can also be started manually. It uses a concurrency lock, Node.js 20, bounded probe concurrency, and a 12-minute job timeout. The job writes `data/github/YYYY-MM-DD.json`, rebuilds the merged file and refreshes the lightweight date index.
-
-## License
-
-The original project license remains applicable.
+## Deploy checklist
+See `CLOUDFLARE-DEPLOY.md` and `MIGRATION.md` for exact steps. After deploy, run the GitHub Actions workflow manually and confirm the `data/index.json` and `data/merged/YYYY-MM-DD.json` files update.

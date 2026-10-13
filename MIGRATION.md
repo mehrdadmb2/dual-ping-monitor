@@ -1,16 +1,18 @@
-# Migration checklist
+# Migration to v3
 
-1. Replace `.github/scripts/ping.js` with the v2 file.
-2. Replace `.github/scripts/merge.js` with the v2 file.
-3. Add `.github/workflows/monitor.yml`.
-4. Delete or disable the old `ping-check.yml`, `ping-github.yml`, and `merge-data.yml` workflows.
-5. Replace `targets.json`.
-6. Replace everything under `docs/` with the new dashboard.
-7. Optionally deploy `cloudflare/worker.js` and set its URL from the dashboard.
-8. Run the new workflow once from **Actions → Dual Ping Monitor → Run workflow**.
-9. Verify that a new `data/index.json` and today's `data/merged/YYYY-MM-DD.json` are committed.
-10. Open GitHub Pages and hard-refresh once (`Ctrl+F5`) so the browser does not reuse an older JS/CSS cache.
+1. Download and unzip `dual-ping-monitor-v3-complete.zip`.
+2. Upload the **contents of the `dual-ping-monitor-v3/` directory** to the repository root, replacing existing files. Keep GitHub Pages configured for `main` → `/docs`.
+3. Disable/delete old overlapping monitoring workflows (`ping-check.yml`, `ping-github.yml`, `merge-data.yml`) if they still exist. Keep only `.github/workflows/monitor.yml` for the GitHub runner.
+4. In `cloudflare/`, run `npx wrangler login` then `npx wrangler deploy`.
+5. Add the Cloudflare Worker secret with `cd cloudflare; npx wrangler secret put GH_TOKEN`. Use a fine-grained token scoped only to this repository and Contents read/write. Never commit the token.
+6. Verify `https://dual-ping-worker.game-developer-mb.workers.dev/health` returns `ok: true`.
+7. Verify `/api/status` returns a `results` array and real latency/status values.
+8. In GitHub → Actions, run **Dual Ping Monitor** manually. Confirm it commits `data/github/`, `data/cloudflare/`, `data/merged/` and `data/index.json`.
+9. Open `https://mehrdadmb2.github.io/dual-ping-monitor/` and hard-refresh (`Ctrl+F5`). Cloudflare endpoint is preconfigured in the dashboard.
 
-## Expected behavior
-
-The previous data can legitimately show 100% packet loss because ICMP was the only availability test. The new snapshots may show `UP` with a non-zero or unavailable ICMP signal. That is not a contradiction; it is the point of the new probe model.
+## If data is still missing
+- Check Worker logs: `cd cloudflare; npx wrangler tail`.
+- Check GitHub Actions logs for `Dual Ping Monitor`.
+- Check Worker secret is named exactly `GH_TOKEN`; check token scope and repository access.
+- Check Pages is configured to publish `/docs`.
+- Do not expect Cloudflare ICMP metrics: Workers support HTTP/HTTPS fetch probes, not raw ICMP sockets.
