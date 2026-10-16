@@ -1,14 +1,15 @@
 {
   "version": 2,
-  "latest": "2026-10-15",
-  "generated_at": "2026-10-15T21:54:35.395Z",
+  "latest": "2026-10-16",
+  "generated_at": "2026-10-16T00:00:39.478Z",
   "dates": [
+    "2026-10-16",
     "2026-10-15",
     "2026-10-14",
     "2026-10-13"
   ],
   "sources": {
     "github": true,
-    "cloudflare": true
+    "cloudflare": false
   }
 }
