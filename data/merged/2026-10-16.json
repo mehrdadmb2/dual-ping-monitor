@@ -1,6 +1,6 @@
 {
   "date": "2026-10-16",
-  "generated_at": "2026-10-16T04:22:51.472Z",
+  "generated_at": "2026-10-16T09:10:43.575Z",
   "version": 2,
   "sources": {
     "github": [
@@ -2053,6 +2053,1031 @@
             }
           }
         ]
+      },
+      {
+        "timestamp": "2026-10-16T09:10:28.519Z",
+        "source": "github",
+        "version": 3,
+        "total": 31,
+        "up": 27,
+        "down": 4,
+        "duration_ms": 14684,
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": false,
+                "method": "HEAD",
+                "status": null,
+                "error": "Error: timeout after 5000ms"
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 776,
+            "http_latency": 776,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1071,
+            "http_latency": 1071,
+            "http_status": 403,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 403,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "tapsi",
+            "name": "Tapsi",
+            "target": "https://tapsi.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": false,
+                "method": "HEAD",
+                "status": null,
+                "error": "Error: timeout after 5000ms"
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "aparat",
+            "name": "Aparat",
+            "target": "https://aparat.com",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1958,
+            "http_latency": 1958,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "rubika",
+            "name": "Rubika",
+            "target": "https://rubika.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1731,
+            "http_latency": 1731,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "bale",
+            "name": "Bale",
+            "target": "https://bale.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": false,
+                "method": "HEAD",
+                "status": null,
+                "error": "TypeError: fetch failed <- Error [ENOTFOUND]: getaddrinfo ENOTFOUND bale.ir"
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "ping: bale.ir: Name or service not known"
+              }
+            }
+          },
+          {
+            "id": "eitaa",
+            "name": "Eitaa",
+            "target": "https://eitaa.com",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1424,
+            "http_latency": 1424,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "cafebazaar",
+            "name": "Cafebazaar",
+            "target": "https://cafebazaar.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 2353,
+            "http_latency": 2353,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "digiato",
+            "name": "Digiato",
+            "target": "https://digiato.com",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1664,
+            "http_latency": 1664,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "isna",
+            "name": "Isna",
+            "target": "https://isna.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 1458,
+            "http_latency": 1458,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "mellat",
+            "name": "Mellat Bank",
+            "target": "https://mellat.ir",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": false,
+                "method": "HEAD",
+                "status": null,
+                "error": "Error: timeout after 5000ms"
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://google.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 453,
+            "http_latency": 453,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "youtube",
+            "name": "YouTube",
+            "target": "https://youtube.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 415,
+            "http_latency": 415,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 96,
+            "http_latency": 96,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://cloudflare.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 189,
+            "http_latency": 189,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://wikipedia.org",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 163,
+            "http_latency": 163,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 38,
+            "http_latency": 38,
+            "http_status": 403,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 403,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "x",
+            "name": "X (Twitter)",
+            "target": "https://x.com",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 186,
+            "http_latency": 186,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 225,
+            "http_latency": 225,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "imdb-showcase",
+            "name": "IMDB Showcase",
+            "target": "https://mehrdadmb2.github.io/imdb-showcase",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 234,
+            "http_latency": 234,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "v2ray-sub",
+            "name": "V2ray Sub",
+            "target": "https://mehrdadmb2.github.io/V2ray_Sub",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 201,
+            "http_latency": 201,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "sms-bomber",
+            "name": "SMS Bomber Pro",
+            "target": "https://mehrdadmb2.github.io/SMS-Bomber-Pro",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 326,
+            "http_latency": 326,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "githuby-card",
+            "name": "GitHuby Card Studio",
+            "target": "https://mehrdadmb2.github.io/githuby-card-studio",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 229,
+            "http_latency": 229,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "mehrdad-dev",
+            "name": "Mehrdad Dev",
+            "target": "https://mehrdadmb2.github.io/mehrdad-dev",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "https",
+            "latency": 206,
+            "http_latency": 206,
+            "http_status": 200,
+            "icmp_latency": null,
+            "icmp_status": "down",
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "https": {
+                "ok": true,
+                "method": "HEAD",
+                "status": 200,
+                "error": null
+              },
+              "icmp": {
+                "status": "down",
+                "samples": [],
+                "error": "1 packets transmitted, 0 received, 100% packet loss, time 0ms"
+              }
+            }
+          },
+          {
+            "id": "cloudflare-dns",
+            "name": "Cloudflare DNS",
+            "target": "1.1.1.1",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 43,
+            "dns_latency": 43,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "172.66.147.243",
+              "104.20.23.154"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://cloudflare-dns.com/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          },
+          {
+            "id": "google-dns",
+            "name": "Google DNS",
+            "target": "8.8.8.8",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 62,
+            "dns_latency": 62,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "172.66.147.243",
+              "104.20.23.154"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://dns.google/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          },
+          {
+            "id": "quad9",
+            "name": "Quad9",
+            "target": "9.9.9.9",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 187,
+            "dns_latency": 187,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "172.66.147.243",
+              "104.20.23.154"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://dns.quad9.net/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          },
+          {
+            "id": "opendns",
+            "name": "OpenDNS",
+            "target": "208.67.222.222",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 80,
+            "dns_latency": 80,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "172.66.147.243",
+              "104.20.23.154"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://doh.opendns.com/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          },
+          {
+            "id": "adguard-dns",
+            "name": "AdGuard DNS",
+            "target": "94.140.14.14",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 302,
+            "dns_latency": 302,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "172.66.147.243",
+              "104.20.23.154"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://dns.adguard-dns.com/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          },
+          {
+            "id": "alidns",
+            "name": "AliDNS",
+            "target": "223.5.5.5",
+            "category": "DNS",
+            "type": "dns",
+            "status": "up",
+            "availability_basis": "dns",
+            "dns_transport": "DoH/HTTP2",
+            "latency": 568,
+            "dns_latency": 568,
+            "tcp53_latency": null,
+            "icmp_latency": null,
+            "icmp_status": "unsupported",
+            "packet_loss": 0,
+            "jitter": null,
+            "resolved": [
+              "104.20.23.154",
+              "172.66.147.243"
+            ],
+            "answer_count": 2,
+            "timestamp": "2026-10-16T09:10:28.519Z",
+            "checks": {
+              "dns": {
+                "ok": true,
+                "test": "example.com",
+                "transport": "DoH/HTTP2",
+                "endpoint": "https://dns.alidns.com/dns-query",
+                "answers": 2,
+                "error": null
+              },
+              "tcp53": {
+                "ok": null,
+                "skipped": true,
+                "note": "Not tested; resolver tested using DNS-over-HTTPS over HTTP/2"
+              },
+              "icmp": {
+                "status": "unsupported",
+                "samples": [],
+                "error": null,
+                "note": "Not used for DNS endpoint checks"
+              }
+            }
+          }
+        ]
       }
     ],
     "cloudflare": [
@@ -3383,6 +4408,1341 @@
                 "method": "HEAD",
                 "latency_ms": 327,
                 "head_latency_ms": 327,
+                "error": null
+              }
+            },
+            "error": null
+          }
+        ],
+        "note": "Cloudflare Workers do not expose raw ICMP sockets. This source reports real HTTP response checks, not ICMP ping."
+      },
+      {
+        "timestamp": "2026-10-16T05:00:58.824Z",
+        "source": "cloudflare",
+        "version": 3,
+        "schema_version": "3.0",
+        "total": 9,
+        "up": 8,
+        "down": 1,
+        "duration_ms": 1992,
+        "platform": "Cloudflare Workers",
+        "probe_type": "HTTP/HTTPS",
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": null,
+            "checks": {
+              "http": {
+                "ok": false,
+                "status": null,
+                "method": "HEAD",
+                "latency_ms": null,
+                "head_latency_ms": null,
+                "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+              }
+            },
+            "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 1838,
+            "http_latency": 1838,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://divar.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 1838,
+                "head_latency_ms": 1838,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 1992,
+            "http_latency": 1992,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "GET",
+            "final_url": "https://soft98.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "GET",
+                "latency_ms": 1992,
+                "head_latency_ms": 1380,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://www.google.com/generate_204",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 53,
+            "http_latency": 53,
+            "http_status": 204,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://www.google.com/generate_204",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 204,
+                "method": "HEAD",
+                "latency_ms": 53,
+                "head_latency_ms": 53,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 57,
+            "http_latency": 57,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://github.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 57,
+                "head_latency_ms": 57,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://www.cloudflare.com/cdn-cgi/trace",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 8,
+            "http_latency": 8,
+            "http_status": 404,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://www.cloudflare.com/cdn-cgi/trace",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 404,
+                "method": "HEAD",
+                "latency_ms": 8,
+                "head_latency_ms": 8,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://www.wikipedia.org/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 57,
+            "http_latency": 57,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://www.wikipedia.org/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 57,
+                "head_latency_ms": 57,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 65,
+            "http_latency": 65,
+            "http_status": 403,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "GET",
+            "final_url": "https://chatgpt.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 403,
+                "method": "GET",
+                "latency_ms": 65,
+                "head_latency_ms": 59,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 383,
+            "http_latency": 383,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T05:00:56.832Z",
+            "method": "HEAD",
+            "final_url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 383,
+                "head_latency_ms": 383,
+                "error": null
+              }
+            },
+            "error": null
+          }
+        ],
+        "note": "Cloudflare Workers do not expose raw ICMP sockets. This source reports real HTTP response checks, not ICMP ping."
+      },
+      {
+        "timestamp": "2026-10-16T06:01:00.857Z",
+        "source": "cloudflare",
+        "version": 3,
+        "schema_version": "3.0",
+        "total": 9,
+        "up": 8,
+        "down": 1,
+        "duration_ms": 2054,
+        "platform": "Cloudflare Workers",
+        "probe_type": "HTTP/HTTPS",
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": null,
+            "checks": {
+              "http": {
+                "ok": false,
+                "status": null,
+                "method": "HEAD",
+                "latency_ms": null,
+                "head_latency_ms": null,
+                "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+              }
+            },
+            "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 1596,
+            "http_latency": 1596,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://divar.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 1596,
+                "head_latency_ms": 1596,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 2054,
+            "http_latency": 2054,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "GET",
+            "final_url": "https://soft98.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "GET",
+                "latency_ms": 2054,
+                "head_latency_ms": 1412,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://www.google.com/generate_204",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 42,
+            "http_latency": 42,
+            "http_status": 204,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://www.google.com/generate_204",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 204,
+                "method": "HEAD",
+                "latency_ms": 42,
+                "head_latency_ms": 42,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 44,
+            "http_latency": 44,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://github.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 44,
+                "head_latency_ms": 44,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://www.cloudflare.com/cdn-cgi/trace",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 7,
+            "http_latency": 7,
+            "http_status": 404,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://www.cloudflare.com/cdn-cgi/trace",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 404,
+                "method": "HEAD",
+                "latency_ms": 7,
+                "head_latency_ms": 7,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://www.wikipedia.org/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 45,
+            "http_latency": 45,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://www.wikipedia.org/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 45,
+                "head_latency_ms": 45,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 55,
+            "http_latency": 55,
+            "http_status": 403,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "GET",
+            "final_url": "https://chatgpt.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 403,
+                "method": "GET",
+                "latency_ms": 55,
+                "head_latency_ms": 50,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 326,
+            "http_latency": 326,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T06:00:58.803Z",
+            "method": "HEAD",
+            "final_url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 326,
+                "head_latency_ms": 326,
+                "error": null
+              }
+            },
+            "error": null
+          }
+        ],
+        "note": "Cloudflare Workers do not expose raw ICMP sockets. This source reports real HTTP response checks, not ICMP ping."
+      },
+      {
+        "timestamp": "2026-10-16T07:01:02.070Z",
+        "source": "cloudflare",
+        "version": 3,
+        "schema_version": "3.0",
+        "total": 9,
+        "up": 8,
+        "down": 1,
+        "duration_ms": 2914,
+        "platform": "Cloudflare Workers",
+        "probe_type": "HTTP/HTTPS",
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": null,
+            "checks": {
+              "http": {
+                "ok": false,
+                "status": null,
+                "method": "HEAD",
+                "latency_ms": null,
+                "head_latency_ms": null,
+                "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+              }
+            },
+            "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 1536,
+            "http_latency": 1536,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://divar.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 1536,
+                "head_latency_ms": 1536,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 2914,
+            "http_latency": 2914,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "GET",
+            "final_url": "https://soft98.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "GET",
+                "latency_ms": 2914,
+                "head_latency_ms": 2244,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://www.google.com/generate_204",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 36,
+            "http_latency": 36,
+            "http_status": 204,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://www.google.com/generate_204",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 204,
+                "method": "HEAD",
+                "latency_ms": 36,
+                "head_latency_ms": 36,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 38,
+            "http_latency": 38,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://github.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 38,
+                "head_latency_ms": 38,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://www.cloudflare.com/cdn-cgi/trace",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 7,
+            "http_latency": 7,
+            "http_status": 404,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://www.cloudflare.com/cdn-cgi/trace",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 404,
+                "method": "HEAD",
+                "latency_ms": 7,
+                "head_latency_ms": 7,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://www.wikipedia.org/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 34,
+            "http_latency": 34,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://www.wikipedia.org/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 34,
+                "head_latency_ms": 34,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 45,
+            "http_latency": 45,
+            "http_status": 403,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "GET",
+            "final_url": "https://chatgpt.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 403,
+                "method": "GET",
+                "latency_ms": 45,
+                "head_latency_ms": 40,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 347,
+            "http_latency": 347,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T07:00:59.156Z",
+            "method": "HEAD",
+            "final_url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 347,
+                "head_latency_ms": 347,
+                "error": null
+              }
+            },
+            "error": null
+          }
+        ],
+        "note": "Cloudflare Workers do not expose raw ICMP sockets. This source reports real HTTP response checks, not ICMP ping."
+      },
+      {
+        "timestamp": "2026-10-16T08:01:03.485Z",
+        "source": "cloudflare",
+        "version": 3,
+        "schema_version": "3.0",
+        "total": 9,
+        "up": 8,
+        "down": 1,
+        "duration_ms": 2577,
+        "platform": "Cloudflare Workers",
+        "probe_type": "HTTP/HTTPS",
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": null,
+            "checks": {
+              "http": {
+                "ok": false,
+                "status": null,
+                "method": "HEAD",
+                "latency_ms": null,
+                "head_latency_ms": null,
+                "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+              }
+            },
+            "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 2577,
+            "http_latency": 2577,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://divar.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 2577,
+                "head_latency_ms": 2577,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 2556,
+            "http_latency": 2556,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "GET",
+            "final_url": "https://soft98.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "GET",
+                "latency_ms": 2556,
+                "head_latency_ms": 1908,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://www.google.com/generate_204",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 185,
+            "http_latency": 185,
+            "http_status": 204,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://www.google.com/generate_204",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 204,
+                "method": "HEAD",
+                "latency_ms": 185,
+                "head_latency_ms": 185,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 43,
+            "http_latency": 43,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://github.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 43,
+                "head_latency_ms": 43,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://www.cloudflare.com/cdn-cgi/trace",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 8,
+            "http_latency": 8,
+            "http_status": 404,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://www.cloudflare.com/cdn-cgi/trace",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 404,
+                "method": "HEAD",
+                "latency_ms": 8,
+                "head_latency_ms": 8,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://www.wikipedia.org/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 48,
+            "http_latency": 48,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://www.wikipedia.org/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 48,
+                "head_latency_ms": 48,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 55,
+            "http_latency": 55,
+            "http_status": 403,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "GET",
+            "final_url": "https://chatgpt.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 403,
+                "method": "GET",
+                "latency_ms": 55,
+                "head_latency_ms": 48,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 638,
+            "http_latency": 638,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T08:01:00.908Z",
+            "method": "HEAD",
+            "final_url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 638,
+                "head_latency_ms": 638,
+                "error": null
+              }
+            },
+            "error": null
+          }
+        ],
+        "note": "Cloudflare Workers do not expose raw ICMP sockets. This source reports real HTTP response checks, not ICMP ping."
+      },
+      {
+        "timestamp": "2026-10-16T09:00:59.403Z",
+        "source": "cloudflare",
+        "version": 3,
+        "schema_version": "3.0",
+        "total": 9,
+        "up": 8,
+        "down": 1,
+        "duration_ms": 2060,
+        "platform": "Cloudflare Workers",
+        "probe_type": "HTTP/HTTPS",
+        "results": [
+          {
+            "id": "snapp",
+            "name": "Snapp",
+            "target": "https://snapp.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "down",
+            "availability_basis": "none",
+            "latency": null,
+            "http_latency": null,
+            "http_status": null,
+            "packet_loss": 100,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": null,
+            "checks": {
+              "http": {
+                "ok": false,
+                "status": null,
+                "method": "HEAD",
+                "latency_ms": null,
+                "head_latency_ms": null,
+                "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+              }
+            },
+            "error": "Too many redirects.https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snapp.ir/, https://snap"
+          },
+          {
+            "id": "divar",
+            "name": "Divar",
+            "target": "https://divar.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 1544,
+            "http_latency": 1544,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://divar.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 1544,
+                "head_latency_ms": 1544,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "soft98",
+            "name": "Soft98",
+            "target": "https://soft98.ir/",
+            "category": "ایرانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 2060,
+            "http_latency": 2060,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "GET",
+            "final_url": "https://soft98.ir/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "GET",
+                "latency_ms": 2060,
+                "head_latency_ms": 1415,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "google",
+            "name": "Google",
+            "target": "https://www.google.com/generate_204",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 172,
+            "http_latency": 172,
+            "http_status": 204,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://www.google.com/generate_204",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 204,
+                "method": "HEAD",
+                "latency_ms": 172,
+                "head_latency_ms": 172,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "github",
+            "name": "GitHub",
+            "target": "https://github.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 38,
+            "http_latency": 38,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://github.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 38,
+                "head_latency_ms": 38,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "cloudflare",
+            "name": "Cloudflare",
+            "target": "https://www.cloudflare.com/cdn-cgi/trace",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 7,
+            "http_latency": 7,
+            "http_status": 404,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://www.cloudflare.com/cdn-cgi/trace",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 404,
+                "method": "HEAD",
+                "latency_ms": 7,
+                "head_latency_ms": 7,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "target": "https://www.wikipedia.org/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 236,
+            "http_latency": 236,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://www.wikipedia.org/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 236,
+                "head_latency_ms": 236,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "chatgpt",
+            "name": "ChatGPT",
+            "target": "https://chatgpt.com/",
+            "category": "جهانی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 176,
+            "http_latency": 176,
+            "http_status": 403,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "GET",
+            "final_url": "https://chatgpt.com/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 403,
+                "method": "GET",
+                "latency_ms": 176,
+                "head_latency_ms": 43,
+                "error": null
+              }
+            },
+            "error": null
+          },
+          {
+            "id": "pysmart-home",
+            "name": "PySmartHome-PC",
+            "target": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "category": "پروژه‌های شخصی",
+            "type": "site",
+            "status": "up",
+            "availability_basis": "http-response",
+            "latency": 349,
+            "http_latency": 349,
+            "http_status": 200,
+            "packet_loss": 0,
+            "jitter": null,
+            "timestamp": "2026-10-16T09:00:57.343Z",
+            "method": "HEAD",
+            "final_url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+            "checks": {
+              "http": {
+                "ok": true,
+                "status": 200,
+                "method": "HEAD",
+                "latency_ms": 349,
+                "head_latency_ms": 349,
                 "error": null
               }
             },
