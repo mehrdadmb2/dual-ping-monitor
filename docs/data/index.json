@@ -1,7 +1,7 @@
 {
   "version": 2,
   "latest": "2026-10-16",
-  "generated_at": "2026-10-16T00:00:39.478Z",
+  "generated_at": "2026-10-16T04:22:51.474Z",
   "dates": [
     "2026-10-16",
     "2026-10-15",
@@ -10,6 +10,6 @@
   ],
   "sources": {
     "github": true,
-    "cloudflare": false
+    "cloudflare": true
   }
 }
