@@ -1,8 +1,9 @@
 {
   "version": 2,
-  "latest": "2026-10-23",
-  "generated_at": "2026-10-23T21:39:25.210Z",
+  "latest": "2026-10-24",
+  "generated_at": "2026-10-24T00:00:22.584Z",
   "dates": [
+    "2026-10-24",
     "2026-10-23",
     "2026-10-22",
     "2026-10-21",
@@ -17,6 +18,6 @@
   ],
   "sources": {
     "github": true,
-    "cloudflare": true
+    "cloudflare": false
   }
 }
