@@ -1,14 +1,12 @@
-name: Dual Ping Monitor
+name: Dual Ping Monitor v4
 
 on:
   schedule:
     - cron: '*/10 * * * *'
   workflow_dispatch:
 
-# Serializes Actions runs. The push step below also rebases/retries because the
-# Cloudflare Worker is an independent writer to the same main branch.
 concurrency:
-  group: dual-ping-monitor
+  group: dual-ping-monitor-main
   cancel-in-progress: false
 
 permissions:
@@ -16,72 +14,85 @@ permissions:
 
 jobs:
   monitor:
+    name: Probe · Merge · Publish
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
-          cache: ''
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Validate source files
+        run: |
+          node --check .github/scripts/ping.js
+          node --check .github/scripts/merge.js
+          node --check .github/scripts/validate.js
+          node --check .github/scripts/smoke-test.js
+          cp cloudflare/worker.js /tmp/dual-ping-worker-check.mjs
+          node --check /tmp/dual-ping-worker-check.mjs
+          node .github/scripts/validate.js
+          node .github/scripts/smoke-test.js
 
       - name: Run resilient probes
         env:
           SOURCE: github
-          TIMEOUT_MS: 5000
+          TIMEOUT_MS: 6500
           ICMP_TIMEOUT_SEC: 2
-          ICMP_SAMPLES: 2
-          CONCURRENCY: 8
+          ICMP_SAMPLES: 3
+          CONCURRENCY: 7
           DNS_TEST_NAME: example.com
         run: node .github/scripts/ping.js
 
-      - name: Build merged dataset and index
+      - name: Build merged history and index
         run: node .github/scripts/merge.js
 
-      - name: Sync datasets into GitHub Pages publish directory
+      - name: Publish data and target catalog to GitHub Pages
+        shell: bash
         run: |
-          mkdir -p docs/data
-          cp -R data/. docs/data/
+          set -euo pipefail
+          mkdir -p docs/data/github docs/data/merged
+          cp -R data/github/. docs/data/github/
+          cp -R data/merged/. docs/data/merged/
+          cp data/index.json docs/data/index.json
+          cp targets.json docs/targets.json
+          echo "Published GitHub history, merged snapshots, index and target catalog."
 
-      - name: Commit monitoring data and push safely
+      - name: Commit monitoring data safely
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "Dual Ping Monitor Bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ docs/data/
+          git add data/ docs/data/github/ docs/data/merged/ docs/data/index.json docs/targets.json
           if git diff --cached --quiet; then
-            echo "No data changes to commit."
+            echo "No monitoring data changes to commit."
             exit 0
           fi
+          git commit -m "chore(data): update v4 monitoring snapshot [skip ci]"
 
-          git commit -m "chore(data): update monitoring snapshot [skip ci]"
-
-          # Cloudflare Cron also writes to main via the GitHub Contents API.
-          # Fetch/rebase before each push and retry if the other writer wins the race.
+          # Cloudflare writes only docs/data/cloudflare; this workflow writes the
+          # GitHub source and merged/index files. Retry if main advances mid-push.
           for attempt in 1 2 3 4; do
             echo "Push attempt ${attempt}/4: syncing with origin/main..."
             git fetch origin main
             if ! git rebase origin/main; then
-              echo "Rebase conflict detected. Aborting rather than force-pushing and risking history loss."
+              echo "Rebase conflict. Aborting safely; no force push will be attempted."
               git rebase --abort || true
               exit 1
             fi
-
             if git push origin HEAD:main; then
-              echo "Monitoring snapshot pushed successfully."
+              echo "Monitoring snapshot committed and pushed."
               exit 0
             fi
-
-            if [ "$attempt" -lt 4 ]; then
-              sleep $((attempt * 2))
-            fi
+            if [ "$attempt" -lt 4 ]; then sleep $((attempt * 2)); fi
           done
-
-          echo "Could not push after four attempts because main kept changing."
+          echo "Push failed after four attempts."
           exit 1
