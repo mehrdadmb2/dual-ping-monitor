@@ -1,443 +1,774 @@
 (() => {
   'use strict';
 
-  const CONFIG = {
-    refreshMs: 30000,
-    historyDays: 14,
-    // GitHub Pages publishes /docs as the site root, so datasets must live in /docs/data/.
-    dataBase: 'data/',
-    cloudflareEndpoint: localStorage.getItem('dpm-cloudflare-endpoint') || 'https://dual-ping-worker.game-developer-mb.workers.dev',
-    storageKey: 'dpm-ui-v3'
+  const CONFIG = window.DPM_CONFIG || {
+    version: '4.0.0', dataBase: 'data/', targetCatalog: 'targets.json',
+    workerUrl: 'https://dual-ping-worker.game-developer-mb.workers.dev',
+    autoRefreshMs: 60000, staleAfterMs: 25 * 60 * 1000, defaultTheme: 'aurora', maxHistoryDays: 7
   };
-
+  const STORAGE_THEME = 'dpm-theme-v4';
+  const STATUS = {
+    up: { label: 'سالم', short: 'UP', rank: 2 },
+    degraded: { label: 'محدود', short: 'WARN', rank: 1 },
+    down: { label: 'قطع', short: 'DOWN', rank: 0 },
+    unknown: { label: 'بدون داده', short: 'N/A', rank: 3 }
+  };
   const state = {
-    date: null,
-    index: null,
-    merged: null,
-    github: [],
-    cloudflare: [],
-    sourceLatest: { github: null, cloudflare: null },
-    category: 'all',
-    search: '',
-    sort: 'status',
-    period: 24,
-    autoRefresh: true,
-    refreshing: false,
-    timer: null,
-    selectedId: null,
-    theme: localStorage.getItem(CONFIG.storageKey) || 'aurora'
+    catalog: [], catalogMap: new Map(), dnsCatalog: [], index: null,
+    history: { github: [], cloudflare: [] }, sourceLatest: { github: null, cloudflare: null },
+    liveEdge: null, currentById: new Map(), latestSnapshot: null,
+    category: 'all', search: '', group: 'all', sort: 'status', period: '24h',
+    autoRefresh: true, refreshingLive: false, refreshTimer: null, selectedId: null,
+    theme: safeStorageGet(STORAGE_THEME) || CONFIG.defaultTheme,
+    loading: true, lastRefresh: null, extraDaysLoaded: false, lastError: null
   };
 
   const $ = id => document.getElementById(id);
-  const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const num = value => Number.isFinite(Number(value)) ? Number(value) : null;
-  const fmtMs = value => num(value) == null ? '—' : `${Math.round(value)} ms`;
-  const pct = (a, b) => b ? `${Math.round((a / b) * 100)}%` : '—';
-  const faTime = iso => iso ? new Date(iso).toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-  const faClock = iso => iso ? new Date(iso).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '—';
-  const statusRank = { down: 0, up: 1 };
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const asNumber = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(value) : null;
+  const timestampOf = row => row?.timestamp || row?.t || null;
+  const toDate = value => { const date = value ? new Date(value) : null; return date && Number.isFinite(date.getTime()) ? date : null; };
+  const faNumber = value => value == null ? '—' : Number(value).toLocaleString('fa-IR', { maximumFractionDigits: 1 });
+  const faDateTime = value => { const date = toDate(value); return date ? date.toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' }) : '—'; };
+  const faTime = value => { const date = toDate(value); return date ? date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '—'; };
+  const fmtMs = value => asNumber(value) == null ? '—' : `${faNumber(Math.round(Number(value)))} ms`;
+  const percent = (part, total) => total ? `${Math.round(part / total * 100)}٪` : '—';
+  const statusInfo = status => STATUS[status] || STATUS.unknown;
+  const statusClass = status => STATUS[status] ? status : 'unknown';
+  const safeStorageGet = key => { try { return localStorage.getItem(key); } catch { return null; } };
+  const safeStorageSet = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+  const safeStorageRemove = key => { try { localStorage.removeItem(key); } catch {} };
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const isoDay = date => date.toISOString().slice(0, 10);
+  const nowIso = () => new Date().toISOString();
+  const hostname = value => { try { return new URL(value).hostname; } catch { return String(value || ''); } };
+  const snapshotSource = snapshot => snapshot?.source || snapshot?.s || 'unknown';
+  const snapshotRows = snapshot => Array.isArray(snapshot?.results) ? snapshot.results : Array.isArray(snapshot?.r) ? snapshot.r : [];
 
-  function normalizeSnapshot(snapshot, fallbackSource) {
-    if (!snapshot) return null;
-    if (Array.isArray(snapshot)) return snapshot.map(x => normalizeSnapshot(x, fallbackSource)).filter(Boolean);
-    const source = snapshot.source || fallbackSource;
-    const results = Array.isArray(snapshot.results) ? snapshot.results : [];
+  function showToast(message, type = '') {
+    let region = $('toastRegion');
+    if (!region) {
+      region = document.createElement('div');
+      region.id = 'toastRegion'; region.className = 'toast-region'; region.setAttribute('aria-live', 'polite');
+      document.body.appendChild(region);
+    }
+    const item = document.createElement('div');
+    item.className = `toast ${type}`.trim(); item.textContent = message; region.appendChild(item);
+    window.setTimeout(() => item.remove(), 3600);
+  }
+
+  async function fetchJson(url, { timeoutMs = 12000, cache = 'no-store' } = {}) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { cache, signal: controller.signal, headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`HTTP ${response.status} · ${url}`);
+      return await response.json();
+    } finally { window.clearTimeout(timer); }
+  }
+
+  function deriveStatus(row) {
+    const explicit = String(row?.status || row?.s || '').toLowerCase();
+    if (['up', 'ok', 'healthy', 'online'].includes(explicit)) {
+      const code = asNumber(row?.http_status ?? row?.h);
+      if (code != null && code >= 400 && code < 500) return 'degraded';
+      return 'up';
+    }
+    if (['degraded', 'warn', 'warning', 'limited'].includes(explicit)) return 'degraded';
+    if (['down', 'offline', 'failed', 'error'].includes(explicit)) return 'down';
+    const code = asNumber(row?.http_status ?? row?.h);
+    if (code != null) return code >= 200 && code < 400 ? 'up' : code < 500 ? 'degraded' : 'down';
+    const dnsOk = row?.checks?.dns?.ok;
+    if (dnsOk === true) return 'up';
+    if (row?.icmp_status === 'up' || row?.is === 'up') return 'degraded';
+    return 'unknown';
+  }
+
+  function normalizeRecord(raw, source = 'unknown', timestamp = null) {
+    if (!raw || typeof raw !== 'object') return null;
+    const compact = Object.prototype.hasOwnProperty.call(raw, 'i');
+    const id = String(compact ? raw.i : (raw.id || raw.key || ''));
+    if (!id) return null;
+    const catalog = state.catalogMap.get(id) || state.dnsCatalog.find(row => row.id === id) || {};
+    const isDns = compact ? Boolean(state.dnsCatalog.find(row => row.id === id)) : (raw.type === 'dns' || raw.category === 'DNS' || id.includes('dns'));
+    const category = raw.category || catalog.category || (isDns ? 'DNS' : 'سایر');
+    const status = deriveStatus(raw);
+    const latency = asNumber(compact ? raw.l : (raw.latency ?? raw.http_latency ?? raw.dns_latency ?? raw.icmp_latency));
     return {
-      timestamp: snapshot.timestamp || new Date().toISOString(),
-      source,
-      total: num(snapshot.total) ?? results.length,
-      up: num(snapshot.up) ?? results.filter(r => r.status === 'up').length,
-      down: num(snapshot.down) ?? results.filter(r => r.status === 'down').length,
-      duration_ms: snapshot.duration_ms ?? null,
-      results: results.map((r, i) => ({
-        id: r.id || `${source}-${i}-${r.name || 'target'}`,
-        name: r.name || r.title || 'Unknown',
-        target: r.target || r.url || r.ip || '',
-        category: r.category || (r.type === 'dns' ? 'DNS' : 'سایر'),
-        type: r.type || 'site',
-        status: r.status === 'up' ? 'up' : 'down',
-        availability_basis: r.availability_basis || 'unknown',
-        latency: num(r.latency),
-        http_latency: num(r.http_latency),
-        http_status: r.http_status ?? null,
-        dns_latency: num(r.dns_latency),
-        tcp53_latency: num(r.tcp53_latency),
-        icmp_latency: num(r.icmp_latency),
-        icmp_status: r.icmp_status || 'unknown',
-        packet_loss: num(r.packet_loss) ?? null,
-        jitter: num(r.jitter),
-        resolved: Array.isArray(r.resolved) ? r.resolved : [],
-        checks: r.checks || {},
-        timestamp: r.timestamp || snapshot.timestamp
-      }))
+      ...catalog,
+      ...(!compact ? raw : {}),
+      id,
+      name: String(compact ? (catalog.name || id) : (raw.name || raw.title || catalog.name || id)),
+      target: String(compact ? (catalog.url || catalog.ip || '') : (raw.target || raw.url || raw.ip || catalog.url || catalog.ip || '')),
+      url: String(catalog.url || raw.url || raw.target || ''),
+      doh_url: raw.doh_url || catalog.doh_url || '',
+      type: isDns ? 'dns' : (raw.type || 'site'),
+      category,
+      group: raw.group || catalog.group || 'سایر',
+      region: raw.region || catalog.region || '',
+      criticality: raw.criticality || catalog.criticality || 'normal',
+      tags: Array.isArray(raw.tags) ? raw.tags : (catalog.tags || []),
+      status,
+      latency,
+      http_status: asNumber(compact ? raw.h : raw.http_status),
+      http_latency: asNumber(compact ? raw.hl : raw.http_latency),
+      icmp_latency: asNumber(compact ? raw.il : raw.icmp_latency),
+      icmp_status: compact ? (raw.is || null) : (raw.icmp_status || null),
+      dns_latency: asNumber(compact ? raw.dl : raw.dns_latency),
+      packet_loss: asNumber(compact ? raw.pl : raw.packet_loss),
+      jitter: asNumber(compact ? raw.j : raw.jitter),
+      resolved: Array.isArray(compact ? raw.a : raw.resolved) ? (compact ? raw.a : raw.resolved) : [],
+      answer_count: asNumber(compact ? raw.ac : raw.answer_count),
+      retry_count: asNumber(compact ? raw.rt : raw.retry_count),
+      error: compact ? (raw.e || null) : (raw.error || null),
+      availability_basis: compact ? (raw.b || null) : (raw.availability_basis || null),
+      timestamp: timestamp || raw.timestamp || null,
+      checks: raw.checks || null,
+      reachability: raw.reachability || (status === 'up' || status === 'degraded' ? 'reachable' : status === 'down' ? 'unreachable' : 'unknown'),
+      health_score: asNumber(raw.health_score) ?? (status === 'up' ? 100 : status === 'degraded' ? 55 : status === 'down' ? 0 : null)
     };
   }
 
-  function latestSnapshot(raw, source) {
-    const list = normalizeSnapshot(raw, source);
-    if (!list) return null;
-    const arr = Array.isArray(list) ? list : [list];
-    return arr.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
+  function normalizeSnapshot(raw, fallbackSource = 'unknown') {
+    if (!raw || typeof raw !== 'object') return null;
+    if (Array.isArray(raw)) return raw.map(row => normalizeSnapshot(row, fallbackSource)).filter(Boolean);
+    const compact = Object.prototype.hasOwnProperty.call(raw, 't') || Object.prototype.hasOwnProperty.call(raw, 'r');
+    const timestamp = raw.timestamp || raw.t || nowIso();
+    const source = raw.source || raw.s || fallbackSource;
+    const rawRows = snapshotRows(raw);
+    const results = rawRows.map(row => normalizeRecord(row, source, timestamp)).filter(Boolean);
+    const up = asNumber(raw.up ?? raw.u) ?? results.filter(row => row.status === 'up').length;
+    const degraded = asNumber(raw.degraded ?? raw.g) ?? results.filter(row => row.status === 'degraded').length;
+    const down = asNumber(raw.down ?? raw.d) ?? results.filter(row => row.status === 'down').length;
+    return {
+      timestamp, source, version: asNumber(raw.version ?? raw.v) ?? 4,
+      total: asNumber(raw.total ?? raw.n) ?? results.length,
+      up, degraded, down,
+      duration_ms: asNumber(raw.duration_ms ?? raw.ms),
+      platform: raw.platform || (source === 'cloudflare' ? 'Cloudflare Workers' : 'GitHub Actions'),
+      probe_type: raw.probe_type || '', results,
+      raw, compact
+    };
   }
 
-  async function fetchJson(url, timeout = 7000) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeout);
+  function normalizeSourcePayload(payload, source) {
+    let rows = [];
+    if (Array.isArray(payload)) rows = payload;
+    else if (payload && Array.isArray(payload.sources?.[source])) rows = payload.sources[source];
+    else if (payload && Array.isArray(payload.results)) rows = [payload];
+    else if (payload && (payload.t || payload.timestamp)) rows = [payload];
+    return rows.map(row => normalizeSnapshot(row, source)).filter(Boolean).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  }
+
+  function mergeByTimestamp(rows) {
+    const unique = new Map();
+    for (const row of rows) {
+      if (!row?.timestamp) continue;
+      unique.set(`${row.source}:${row.timestamp}`, row);
+    }
+    return [...unique.values()].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  }
+
+  function latestOf(rows) { return rows?.length ? rows[rows.length - 1] : null; }
+
+  async function loadCatalog() {
+    const catalog = await fetchJson(`${CONFIG.targetCatalog}?v=${encodeURIComponent(CONFIG.version)}`);
+    state.catalog = Array.isArray(catalog.sites) ? catalog.sites : [];
+    state.dnsCatalog = Array.isArray(catalog.dns) ? catalog.dns : [];
+    state.catalogMap = new Map(state.catalog.map(row => [row.id, row]));
+    for (const row of state.dnsCatalog) state.catalogMap.set(row.id, row);
+    populateGroupOptions();
+    return catalog;
+  }
+
+  function populateGroupOptions() {
+    const select = $('groupSelect');
+    if (!select) return;
+    const current = select.value || 'all';
+    const groups = [...new Set([...state.catalog, ...state.dnsCatalog].map(row => row.group).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fa'));
+    select.innerHTML = '<option value="all">همه‌ی گروه‌ها</option>' + groups.map(group => `<option value="${esc(group)}">${esc(group)}</option>`).join('');
+    select.value = groups.includes(current) ? current : 'all';
+  }
+
+  function dateList() {
+    const dates = Array.isArray(state.index?.dates) ? state.index.dates : [];
+    const clean = dates.filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
+    const today = isoDay(new Date());
+    if (!clean.includes(today)) clean.unshift(today);
+    return [...new Set(clean)].sort().reverse();
+  }
+
+  async function loadHistoryDay(day) {
+    const mergedUrl = `${CONFIG.dataBase}merged/${day}.json?dpm=${CONFIG.version}`;
     try {
-      const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`, { cache: 'no-store', signal: controller.signal });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
+      const merged = await fetchJson(mergedUrl, { timeoutMs: 10000, cache: 'no-cache' });
+      return {
+        github: normalizeSourcePayload(merged, 'github'),
+        cloudflare: normalizeSourcePayload(merged, 'cloudflare')
+      };
+    } catch {
+      const [github, cloudflare] = await Promise.allSettled([
+        fetchJson(`${CONFIG.dataBase}github/${day}.json`, { timeoutMs: 9000, cache: 'no-cache' }),
+        fetchJson(`${CONFIG.dataBase}cloudflare/${day}.json`, { timeoutMs: 9000, cache: 'no-cache' })
+      ]);
+      return {
+        github: github.status === 'fulfilled' ? normalizeSourcePayload(github.value, 'github') : [],
+        cloudflare: cloudflare.status === 'fulfilled' ? normalizeSourcePayload(cloudflare.value, 'cloudflare') : []
+      };
+    }
+  }
+
+  async function loadHistorical({ days = 2, append = false } = {}) {
+    try {
+      if (!state.index) state.index = await fetchJson(`${CONFIG.dataBase}index.json?v=${CONFIG.version}`, { timeoutMs: 9000, cache: 'no-cache' });
+    } catch (error) {
+      state.lastError = error;
+      state.index = { dates: [isoDay(new Date())], latest: isoDay(new Date()) };
+    }
+    const dates = dateList().slice(0, Math.min(CONFIG.maxHistoryDays || 7, days));
+    const loaded = await Promise.all(dates.map(loadHistoryDay));
+    const github = loaded.flatMap(row => row.github);
+    const cloudflare = loaded.flatMap(row => row.cloudflare);
+    if (append) {
+      state.history.github = mergeByTimestamp([...state.history.github, ...github]);
+      state.history.cloudflare = mergeByTimestamp([...state.history.cloudflare, ...cloudflare]);
+    } else {
+      state.history.github = mergeByTimestamp(github);
+      state.history.cloudflare = mergeByTimestamp(cloudflare);
+    }
+    state.sourceLatest.github = latestOf(state.history.github);
+    state.sourceLatest.cloudflare = latestOf(state.history.cloudflare);
+    state.extraDaysLoaded = days >= 7;
+    return { dates: dates.length, github: state.history.github.length, cloudflare: state.history.cloudflare.length };
+  }
+
+  async function refreshLive({ quiet = false, fresh = false } = {}) {
+    if (state.refreshingLive) return null;
+    state.refreshingLive = true;
+    const button = $('refreshBtn');
+    button?.classList.add('is-loading');
+    if (!state.liveEdge && !quiet) setSystemBadge('در حال بررسی زنده', 'loading');
+    try {
+      const endpoint = fresh ? '/api/status' : '/api/latest';
+      const snapshot = await fetchJson(`${CONFIG.workerUrl.replace(/\/$/, '')}${endpoint}`, { timeoutMs: fresh ? 68000 : 10000, cache: 'no-store' });
+      const normalized = normalizeSnapshot(snapshot, 'cloudflare');
+      if (!normalized?.results?.length) throw new Error('Worker responded without probe results');
+      adoptTargetsFromSnapshot(normalized);
+      state.liveEdge = normalized;
+      state.sourceLatest.cloudflare = normalized;
+      state.lastRefresh = nowIso();
+      renderAll();
+      if (!quiet) showToast(fresh ? 'Probe کامل از Cloudflare اجرا شد.' : 'آخرین نمونه‌ی زمان‌بندی‌شده دریافت شد.', 'success');
+      return normalized;
+    } catch (error) {
+      state.lastError = error;
+      if (!quiet) showToast(`ارتباط زنده برقرار نشد؛ تاریخچه همچنان در دسترس است. (${error.message || 'Network error'})`, 'error');
+      updateSourceStatus();
+      return null;
     } finally {
-      clearTimeout(timer);
+      state.refreshingLive = false;
+      button?.classList.remove('is-loading');
+      hideBootScreen();
     }
   }
 
-  async function discoverDate() {
-    try {
-      const index = await fetchJson(`${CONFIG.dataBase}index.json`);
-      state.index = index;
-      if (index?.latest) {
-        // Do not trust a stale index until its corresponding merged file can actually be loaded.
-        try {
-          await fetchJson(`${CONFIG.dataBase}merged/${index.latest}.json`, 3500);
-          return index.latest;
-        } catch (_) {}
+  function hideBootScreen(message) {
+    if (message && $('bootMessage')) $('bootMessage').textContent = message;
+    window.setTimeout(() => {
+      $('bootScreen')?.classList.add('is-hidden');
+      state.loading = false;
+    }, 180);
+  }
+
+  function setSystemBadge(label, mode = 'loading') {
+    const badge = $('systemBadge');
+    if (!badge) return;
+    badge.className = `system-badge ${mode}`;
+    badge.innerHTML = `<span class="pulse-dot"></span><strong>${esc(label)}</strong>`;
+  }
+
+  function adoptTargetsFromSnapshot(snapshot) {
+    if (!snapshot?.results?.length) return;
+    let changed = false;
+    for (const row of snapshot.results) {
+      if (!row.id || state.catalogMap.has(row.id)) continue;
+      const inferred = {
+        id: row.id, name: row.name || row.id, url: row.type === 'dns' ? '' : (row.url || row.target || ''),
+        ip: row.type === 'dns' ? (row.target || '') : '', doh_url: row.doh_url || '',
+        category: row.category || (row.type === 'dns' ? 'DNS' : 'سایر'), group: row.group || 'سایر',
+        region: row.region || '', criticality: row.criticality || 'normal', tags: row.tags || []
+      };
+      if (row.type === 'dns' || inferred.category === 'DNS') state.dnsCatalog.push(inferred);
+      else state.catalog.push(inferred);
+      state.catalogMap.set(row.id, inferred);
+      changed = true;
+    }
+    if (changed) populateGroupOptions();
+  }
+
+  function snapshotForDisplay() {
+    const candidates = [state.sourceLatest.github, state.liveEdge || state.sourceLatest.cloudflare].filter(Boolean);
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return candidates[0];
+  }
+
+  function buildCurrentMap() {
+    const map = new Map();
+    const snapshots = [state.sourceLatest.github, state.sourceLatest.cloudflare, state.liveEdge].filter(Boolean);
+    for (const snapshot of snapshots) {
+      for (const row of snapshot.results || []) {
+        const previous = map.get(row.id);
+        if (!previous || new Date(row.timestamp || snapshot.timestamp) >= new Date(previous.timestamp || '1970-01-01')) {
+          map.set(row.id, { ...row, timestamp: row.timestamp || snapshot.timestamp, source: snapshot.source });
+        }
       }
-    } catch (_) {}
-
-    const base = new Date();
-    for (let offset = 0; offset < CONFIG.historyDays; offset += 1) {
-      const date = new Date(base);
-      date.setUTCDate(base.getUTCDate() - offset);
-      const key = date.toISOString().slice(0, 10);
-      try {
-        await fetchJson(`${CONFIG.dataBase}merged/${key}.json`, 3500);
-        return key;
-      } catch (_) {}
     }
-    return null;
+    state.currentById = map;
+    return map;
   }
 
-  async function loadData() {
-    state.refreshing = true;
-    updateSystem('loading', 'در حال دریافت');
-    try {
-      const date = await discoverDate();
-      state.date = date || new Date().toISOString().slice(0, 10);
-      state.merged = null;
-      state.github = [];
-      state.cloudflare = [];
-
-      if (date) {
-        const mergedRaw = await fetchJson(`${CONFIG.dataBase}merged/${date}.json`);
-        state.merged = mergedRaw;
-        state.github = Array.isArray(mergedRaw?.sources?.github)
-          ? mergedRaw.sources.github.map(x => normalizeSnapshot(x, 'github')).filter(Boolean)
-          : [];
-        state.cloudflare = Array.isArray(mergedRaw?.sources?.cloudflare)
-          ? mergedRaw.sources.cloudflare.map(x => normalizeSnapshot(x, 'cloudflare')).filter(Boolean)
-          : [];
-      }
-
-      state.github = state.github.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      state.cloudflare = state.cloudflare.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      state.sourceLatest.github = latestSnapshot(state.github, 'github');
-      state.sourceLatest.cloudflare = latestSnapshot(state.cloudflare, 'cloudflare');
-    } catch (error) {
-      // A missing static history file must not prevent the live Worker from populating the dashboard.
-      console.warn('[DPM] saved history unavailable; falling back to live edge data:', error.message);
-      state.merged = null;
-      state.github = [];
-      state.cloudflare = [];
-      state.sourceLatest.github = null;
-      state.sourceLatest.cloudflare = null;
-      state.date = new Date().toISOString().slice(0, 10);
-    }
-
-    try {
-      await tryCloudflareEdge();
-      render();
-      const hasData = Boolean(state.sourceLatest.github || state.sourceLatest.cloudflare);
-      if (!hasData) {
-        updateSystem('error', 'دریافت ناموفق');
-        renderEmpty('نه تاریخچه‌ی ذخیره‌شده پیدا شد و نه Worker زنده پاسخ داد. مسیر داده و وضعیت Worker را بررسی کنید.');
-      } else if (state.github.length) {
-        updateSystem('ok', 'اتصال برقرار');
-      } else {
-        updateSystem('warn', 'داده‌ی زنده از Cloudflare');
-      }
-    } catch (error) {
-      console.error('[DPM] live edge load failed', error);
-      updateSystem('error', 'دریافت ناموفق');
-    } finally {
-      state.refreshing = false;
-    }
+  function visibleTargets() {
+    const catalog = [...state.catalog, ...state.dnsCatalog];
+    const query = state.search.trim().toLocaleLowerCase('fa');
+    return catalog.map(target => {
+      const latest = state.currentById.get(target.id);
+      return { ...target, ...(latest || {}), id: target.id, name: target.name, url: target.url || '', group: target.group || 'سایر', category: target.category || 'DNS', status: latest?.status || 'unknown', latency: latest?.latency ?? null };
+    }).filter(target => {
+      if (state.category !== 'all' && target.category !== state.category) return false;
+      if (state.group !== 'all' && target.group !== state.group) return false;
+      if (!query) return true;
+      const bag = [target.name, target.id, target.url, target.group, target.category, target.region, ...(target.tags || [])].join(' ').toLocaleLowerCase('fa');
+      return bag.includes(query);
+    }).sort((a, b) => {
+      if (state.sort === 'latency') return (a.latency ?? Infinity) - (b.latency ?? Infinity);
+      if (state.sort === 'criticality') return ({ critical: 0, high: 1, normal: 2, low: 3 }[a.criticality] ?? 4) - ({ critical: 0, high: 1, normal: 2, low: 3 }[b.criticality] ?? 4);
+      if (state.sort === 'name') return a.name.localeCompare(b.name, 'fa');
+      if (state.sort === 'category') return a.category.localeCompare(b.category, 'fa') || a.name.localeCompare(b.name, 'fa');
+      return statusInfo(a.status).rank - statusInfo(b.status).rank || (a.latency ?? Infinity) - (b.latency ?? Infinity);
+    });
   }
 
-  async function tryCloudflareEdge() {
-    if (!CONFIG.cloudflareEndpoint) return;
-    try {
-      const raw = await fetchJson(CONFIG.cloudflareEndpoint, 6500);
-      const edge = normalizeSnapshot(raw, 'cloudflare');
-      if (edge) {
-        state.sourceLatest.cloudflare = edge;
-        state.cloudflare.push(edge);
-        state.cloudflare = state.cloudflare.slice(-400);
-        state.cloudflare.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      }
-    } catch (error) {
-      console.info('[DPM] Cloudflare edge unavailable', error.message);
-    }
-  }
-
-  function getPreferredSnapshot() {
-    const candidates = [state.sourceLatest.github, state.sourceLatest.cloudflare].filter(Boolean);
-    return candidates.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0] || null;
-  }
-
-  function getPrimaryResults() {
-    return getPreferredSnapshot()?.results || [];
-  }
-
-  function getFilteredResults() {
-    let results = getPrimaryResults().slice();
-    const q = state.search.trim().toLowerCase();
-    if (state.category !== 'all') results = results.filter(r => r.category === state.category);
-    if (q) results = results.filter(r => [r.name, r.target, r.category, r.type].some(v => String(v || '').toLowerCase().includes(q)));
-    if (state.sort === 'name') results.sort((a, b) => a.name.localeCompare(b.name));
-    if (state.sort === 'category') results.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
-    if (state.sort === 'latency') results.sort((a, b) => (a.latency ?? 999999) - (b.latency ?? 999999));
-    if (state.sort === 'status') results.sort((a, b) => (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9) || (a.latency ?? 999999) - (b.latency ?? 999999));
-    return results;
-  }
-
-  function render() {
-    const latest = getPreferredSnapshot();
-    const results = latest?.results || [];
-    const up = results.filter(r => r.status === 'up').length;
-    const down = results.length - up;
-    const latencies = results.map(r => r.latency).filter(v => v != null);
-    const avg = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null;
-    const losses = results.map(r => r.packet_loss).filter(v => v != null);
-    const loss = losses.length ? Math.round(losses.reduce((a, b) => a + b, 0) / losses.length) : null;
-
-    $('totalMetric').textContent = results.length || '—';
-    $('upMetric').textContent = results.length ? up : '—';
-    $('downMetric').textContent = results.length ? down : '—';
-    $('avgMetric').textContent = avg == null ? '—' : `${avg}ms`;
-    $('uptimeMetric').textContent = results.length ? pct(up, results.length) : '—';
-    $('lossMetric').textContent = loss == null ? '—' : `${loss}%`;
-    $('upRatio').textContent = results.length ? pct(up, results.length) : 'Current';
-    $('downRatio').textContent = results.length ? pct(down, results.length) : 'Current';
-    $('dataDate').textContent = state.date || '—';
-    $('lastUpdate').textContent = latest ? faTime(latest.timestamp) : '—';
-    $('historyCount').textContent = `${Math.max(state.github.length, state.cloudflare.length)} snaps`;
-    $('githubSourceMeta').textContent = state.sourceLatest.github ? `${state.sourceLatest.github.results.length} هدف • ${faTime(state.sourceLatest.github.timestamp)}` : 'بدون snapshot';
-    $('cfSourceMeta').textContent = CONFIG.cloudflareEndpoint ? 'Edge endpoint فعال' : 'Endpoint اختیاری / غیرفعال';
-    $('githubState').textContent = state.sourceLatest.github ? `${state.sourceLatest.github.up}/${state.sourceLatest.github.total}` : '—';
-    $('cfState').textContent = state.sourceLatest.cloudflare ? `${state.sourceLatest.cloudflare.up}/${state.sourceLatest.cloudflare.total}` : '—';
-
-    renderTargets();
-    renderChart();
-    renderCompare();
-    renderResilience(results);
-    $('footerDataInfo').textContent = `Dataset ${state.date || '—'} • refresh ${CONFIG.refreshMs / 1000}s`;
+  function targetInitial(target) {
+    const pieces = String(target.name || target.id).replace(/[^A-Za-z0-9\u0600-\u06FF ]/g, ' ').trim().split(/\s+/).filter(Boolean);
+    const latin = pieces.filter(part => /^[A-Za-z]/.test(part));
+    if (latin.length) return latin.slice(0, 2).map(part => part[0]).join('').toUpperCase();
+    return pieces.slice(0, 2).map(part => part[0]).join('') || '◎';
   }
 
   function renderTargets() {
-    const data = getFilteredResults();
-    $('visibleCount').textContent = `${data.length} / ${getPrimaryResults().length}`;
-    if (!data.length) { $('targetGrid').innerHTML = `<div class="empty-state">${getPrimaryResults().length ? 'نتیجه‌ای برای فیلتر فعلی پیدا نشد.' : 'هیچ داده‌ای برای نمایش وجود ندارد.'}</div>`; return; }
-    $('targetGrid').innerHTML = data.map((r, index) => `
-      <button class="target-card ${r.status}" data-id="${esc(r.id)}" style="--i:${index}">
-        <span class="target-index">${String(index + 1).padStart(2, '0')}</span>
-        <span class="target-icon">${r.type === 'dns' ? 'DNS' : '↯'}</span>
-        <span class="target-copy"><strong>${esc(r.name)}</strong><small>${esc(r.target)}</small></span>
-        <span class="target-meta"><b>${fmtMs(r.latency)}</b><em>${esc(r.availability_basis)}</em></span>
-        <span class="status-light"></span>
-      </button>`).join('');
-    document.querySelectorAll('.target-card').forEach(card => card.addEventListener('click', () => openDetails(card.dataset.id)));
+    const rows = visibleTargets();
+    $('allCount').textContent = faNumber(state.catalog.length + state.dnsCatalog.length);
+    $('visibleCount').textContent = faNumber(rows.length);
+    $('targetSummary').textContent = `${faNumber(rows.length)} هدف`;
+    $('targetEmpty').hidden = rows.length > 0;
+    $('targetGrid').innerHTML = rows.map((target, index) => {
+      const status = statusClass(target.status);
+      const info = statusInfo(status);
+      const isCritical = ['critical', 'high'].includes(target.criticality);
+      return `<button type="button" class="target-card status-${status}" data-target-id="${esc(target.id)}" style="animation-delay:${Math.min(index,18)*18}ms" aria-label="جزئیات ${esc(target.name)}">
+        <span class="target-card-top"><span class="target-card-name"><span class="target-icon">${esc(targetInitial(target))}</span><strong>${esc(target.name)}</strong></span><span class="status-pill">${info.label}</span></span>
+        <span class="target-card-domain" title="${esc(target.url || target.doh_url || '')}">${esc(hostname(target.url || target.doh_url || target.ip || '—'))}</span>
+        <span class="target-card-bottom"><span class="target-card-group">${isCritical ? '<span class="critical-star">★ </span>' : ''}${esc(target.group)}</span><span class="target-latency">${target.latency == null ? '—' : `${faNumber(Math.round(target.latency))} <small>ms</small>`}</span></span>
+      </button>`;
+    }).join('');
+    $('targetGrid').querySelectorAll('[data-target-id]').forEach(button => button.addEventListener('click', () => openTargetDetails(button.dataset.targetId)));
+  }
+
+  function renderMetrics() {
+    const targets = [...state.catalog, ...state.dnsCatalog];
+    const current = buildCurrentMap();
+    let up = 0, degraded = 0, down = 0;
+    const latencies = [];
+    for (const target of targets) {
+      const row = current.get(target.id);
+      if (!row) continue;
+      if (row.status === 'up') up++;
+      else if (row.status === 'degraded') degraded++;
+      else if (row.status === 'down') down++;
+      if (row.status !== 'down' && asNumber(row.latency) != null) latencies.push(Number(row.latency));
+    }
+    const totalWithData = up + degraded + down;
+    const average = latencies.length ? latencies.reduce((sum, value) => sum + value, 0) / latencies.length : null;
+    const latest = snapshotForDisplay();
+    $('totalMetric').textContent = faNumber(targets.length);
+    $('totalNote').textContent = `${faNumber(state.catalog.length)} سایت · ${faNumber(state.dnsCatalog.length)} سرویس DNS`;
+    $('upMetric').textContent = faNumber(up);
+    $('upNote').textContent = percent(up, totalWithData) + ' از داده‌های موجود';
+    $('degradedMetric').textContent = faNumber(degraded);
+    $('degradedNote').textContent = 'HTTP 4xx یا دسترسی محدود';
+    $('downMetric').textContent = faNumber(down);
+    $('downNote').textContent = totalWithData < targets.length ? `${faNumber(targets.length - totalWithData)} هدف هنوز داده ندارد` : 'خطای HTTP / DNS / اتصال';
+    $('avgMetric').textContent = average == null ? '—' : faNumber(Math.round(average));
+    $('avgNote').textContent = `از ${faNumber(latencies.length)} پاسخ قابل‌اندازه‌گیری`;
+    const uptime = calculateUptime(24);
+    $('uptimeMetric').textContent = uptime == null ? '—' : percent(uptime.ok, uptime.total);
+    $('uptimeNote').textContent = uptime ? `${faNumber(uptime.total)} نمونه‌ی پایش در ۲۴ ساعت` : 'داده‌ی کافی در بازه‌ی ۲۴ ساعت وجود ندارد';
+    $('heroLatency').textContent = average == null ? '— ms' : `${faNumber(Math.round(average))} ms`;
+    $('heroTargets').textContent = faNumber(targets.length);
+    $('probeDuration').textContent = latest?.duration_ms == null ? '—' : `${faNumber(latest.duration_ms)} ms`;
+    $('lastUpdate').textContent = state.lastRefresh ? faTime(state.lastRefresh) : (latest ? faTime(latest.timestamp) : '—');
+    $('dataDate').textContent = latest ? faDateTime(latest.timestamp) : '—';
+    $('footerDataInfo').textContent = latest ? `آخرین داده: ${faDateTime(latest.timestamp)}` : 'تاریخچه‌ی GitHub Pages';
+    renderResilience({ up, degraded, down, totalWithData, average });
+  }
+
+  function calculateUptime(hours) {
+    const cutoff = Date.now() - hours * 60 * 60 * 1000;
+    const snapshots = [...state.history.github, ...state.history.cloudflare, ...(state.liveEdge ? [state.liveEdge] : [])]
+      .filter(snapshot => new Date(snapshot.timestamp).getTime() >= cutoff);
+    let ok = 0, total = 0;
+    for (const snapshot of snapshots) for (const row of snapshot.results || []) {
+      if (row.status === 'unknown') continue;
+      total++;
+      if (row.status === 'up') ok++;
+      else if (row.status === 'degraded') ok += .5;
+    }
+    return total ? { ok, total } : null;
+  }
+
+  function renderResilience(metrics) {
+    if (!metrics.totalWithData) {
+      $('resilienceScore').textContent = '—'; $('resilienceBar').style.width = '0%';
+      $('resilienceList').innerHTML = '<div class="resilience-row"><span>در انتظار داده‌ی معتبر</span><b>—</b></div>';
+      return;
+    }
+    // Critical infrastructure contributes more than low-priority editorial sites.
+    const weightOf = level => ({ critical: 2.0, high: 1.5, normal: 1.0, low: .7 }[level] || 1.0);
+    let weightedHealth = 0, weightTotal = 0;
+    for (const target of [...state.catalog, ...state.dnsCatalog]) {
+      const row = state.currentById.get(target.id);
+      if (!row || !['up', 'degraded', 'down'].includes(row.status)) continue;
+      const weight = weightOf(target.criticality);
+      const health = row.status === 'up' ? 1 : row.status === 'degraded' ? .5 : 0;
+      weightedHealth += health * weight;
+      weightTotal += weight;
+    }
+    const serviceHealth = weightTotal ? weightedHealth / weightTotal : (metrics.up + metrics.degraded * .5) / metrics.totalWithData;
+    const latencyHealth = metrics.average == null ? .65 : Math.max(.25, Math.min(1, 1 - Math.log10(Math.max(1, metrics.average)) / 4.3));
+    const score = Math.round((serviceHealth * .88 + latencyHealth * .12) * 100);
+    $('resilienceScore').textContent = faNumber(score);
+    $('resilienceBar').style.width = `${score}%`;
+    $('resilienceList').innerHTML = [
+      ['دسترس‌پذیری با وزن اهمیت', `${Math.round(serviceHealth * 100)}٪`],
+      ['کیفیت تأخیر میانگین', `${Math.round(latencyHealth * 100)}٪`],
+      ['اهداف دارای داده', `${metrics.totalWithData} / ${state.catalog.length + state.dnsCatalog.length}`]
+    ].map(([label, value]) => `<div class="resilience-row"><span>${label}</span><b>${value}</b></div>`).join('');
+  }
+
+  function updateSourceStatus() {
+    const sources = [
+      { key: 'github', state: latestOf(state.history.github), badge: $('githubState'), meta: $('githubSourceMeta') },
+      { key: 'cloudflare', state: state.liveEdge || latestOf(state.history.cloudflare), badge: $('cfState'), meta: $('cfSourceMeta') }
+    ];
+    let healthy = 0, available = 0;
+    for (const source of sources) {
+      const snap = source.state;
+      if (!snap) {
+        source.badge.className = 'source-status pending'; source.badge.textContent = 'بدون داده';
+        source.meta.textContent = source.key === 'cloudflare' ? 'اتصال زنده برقرار نشده' : 'داده‌ی آرشیوی موجود نیست';
+        continue;
+      }
+      available++;
+      const total = snap.total || snap.results.length || 0;
+      const ratio = total ? (snap.up + snap.degraded * .5) / total : 0;
+      const age = Date.now() - new Date(snap.timestamp).getTime();
+      const stale = !Number.isFinite(age) || age > (CONFIG.staleAfterMs || 25 * 60 * 1000);
+      const mode = stale ? 'warn' : ratio >= .8 ? 'ok' : ratio >= .45 ? 'warn' : 'bad';
+      if (mode === 'ok') healthy++;
+      source.badge.className = `source-status ${mode}`;
+      source.badge.textContent = stale ? 'قدیمی' : mode === 'ok' ? 'فعال' : mode === 'warn' ? 'ناپایدار' : 'مشکل';
+      source.meta.textContent = `${faNumber(snap.total)} هدف · ${faDateTime(snap.timestamp)}${stale ? ' · داده قدیمی' : ''}`;
+    }
+    const badgeMode = available === 0 ? 'bad' : healthy === available ? 'ok' : healthy ? 'warn' : 'bad';
+    setSystemBadge(available === 0 ? 'بدون داده' : badgeMode === 'ok' ? 'سامانه پایدار' : badgeMode === 'warn' ? 'نیازمند بررسی' : 'اختلال در منابع', badgeMode);
+    const sourceHealth = $('sourceHealth');
+    sourceHealth.className = `source-health ${badgeMode}`;
+    sourceHealth.querySelector('span:last-child').textContent = available === 0 ? 'هیچ منبع داده‌ای پاسخ نداده است' : healthy === available ? 'منابع پایش داده‌ی تازه و قابل‌استفاده دارند' : 'حداقل یک منبع قدیمی یا دارای اختلال است';
+  }
+
+  function renderComparison() {
+    const github = state.sourceLatest.github;
+    const cloudflare = state.liveEdge || state.sourceLatest.cloudflare;
+    const body = $('compareBody');
+    if (!github && !cloudflare) {
+      body.innerHTML = '<tr><td colspan="6" class="empty-cell">در انتظار داده‌ی مقایسه‌ای…</td></tr>'; return;
+    }
+    const ghMap = new Map((github?.results || []).map(row => [row.id, row]));
+    const cfMap = new Map((cloudflare?.results || []).map(row => [row.id, row]));
+    const rows = [...state.catalog, ...state.dnsCatalog].map(target => ({ target, gh: ghMap.get(target.id), cf: cfMap.get(target.id) }))
+      .filter(row => row.gh || row.cf)
+      .sort((a, b) => {
+        const ra = Math.min(a.gh ? statusInfo(a.gh.status).rank : 99, a.cf ? statusInfo(a.cf.status).rank : 99);
+        const rb = Math.min(b.gh ? statusInfo(b.gh.status).rank : 99, b.cf ? statusInfo(b.cf.status).rank : 99);
+        return ra - rb || a.target.name.localeCompare(b.target.name, 'fa');
+      });
+    const statusCell = row => row ? `<span class="table-status ${statusClass(row.status)}">${statusInfo(row.status).label}</span>` : '<span class="table-status unknown">—</span>';
+    body.innerHTML = rows.slice(0, 24).map(({ target, gh, cf }) => {
+      const delta = gh?.latency != null && cf?.latency != null ? Math.round(cf.latency - gh.latency) : null;
+      const deltaText = delta == null ? '—' : `${delta > 0 ? '+' : ''}${faNumber(delta)} ms`;
+      const deltaClass = delta == null ? '' : delta > 0 ? 'delta-bad' : 'delta-good';
+      const basis = [gh?.availability_basis, cf?.availability_basis].filter(Boolean).join(' / ') || 'HTTP / DNS';
+      return `<tr><td>${esc(target.name)}</td><td>${esc(target.category)}</td><td>${statusCell(gh)}</td><td>${statusCell(cf)}</td><td class="${deltaClass}">${deltaText}</td><td>${esc(basis)}</td></tr>`;
+    }).join('') || '<tr><td colspan="6" class="empty-cell">داده‌ی مشترکی برای مقایسه وجود ندارد.</td></tr>';
+  }
+
+  function renderIncidents() {
+    const rows = [...state.currentById.values()].filter(row => row.status === 'down' || row.status === 'degraded')
+      .sort((a, b) => statusInfo(a.status).rank - statusInfo(b.status).rank || (b.timestamp || '').localeCompare(a.timestamp || ''));
+    $('incidentCount').textContent = faNumber(rows.length);
+    if (!rows.length) {
+      $('incidentList').innerHTML = '<div class="incident-empty"><span>✓</span><strong>اختلال فعال شناسایی نشد</strong><small>وضعیت هدف‌ها در محدوده‌ی قابل‌قبول است.</small></div>';
+      return;
+    }
+    $('incidentList').innerHTML = rows.slice(0, 8).map(row => {
+      const down = row.status === 'down';
+      const reason = row.error || (row.http_status ? `HTTP ${row.http_status}` : row.status === 'degraded' ? 'پاسخ محدود یا دسترسی محافظت‌شده' : 'پاسخی دریافت نشد');
+      return `<article class="incident-item ${down ? 'down' : ''}"><span class="incident-icon">${down ? '×' : '!'}</span><div><strong>${esc(row.name)} · ${down ? 'قطع' : 'محدود'}</strong><p>${esc(reason)}</p><time>${esc(faDateTime(row.timestamp))} · ${esc(row.source === 'github' ? 'GitHub Actions' : 'Cloudflare Edge')}</time></div></article>`;
+    }).join('');
+  }
+
+  function chartData(snapshots, periodMs) {
+    const cutoff = Date.now() - periodMs;
+    return snapshots.filter(row => new Date(row.timestamp).getTime() >= cutoff).map(snapshot => {
+      const values = (snapshot.results || []).filter(row => row.status !== 'down' && asNumber(row.latency) != null).map(row => Number(row.latency));
+      return values.length ? { time: new Date(snapshot.timestamp).getTime(), value: values.reduce((sum, item) => sum + item, 0) / values.length } : null;
+    }).filter(Boolean);
   }
 
   function renderChart() {
     const svg = $('latencyChart');
-    const width = 640; const height = 300; const pad = 28;
-    const githubSeries = seriesFor(state.github, state.period);
-    const cfSeries = seriesFor(state.cloudflare, state.period);
-    const allValues = [...githubSeries.values, ...cfSeries.values].filter(v => v != null);
-    if (!allValues.length) { svg.innerHTML = `<text x="320" y="150" text-anchor="middle" fill="currentColor" opacity=".55">داده‌ی نموداری موجود نیست</text>`; return; }
-    const max = Math.max(100, Math.ceil(Math.max(...allValues) / 10) * 10);
-    const min = 0;
-    const points = arr => arr.map((v, i) => v == null ? null : `${pad + (i * (width - 2 * pad)) / Math.max(1, arr.length - 1)},${height - pad - ((v - min) / (max - min)) * (height - 2 * pad)}`).filter(Boolean).join(' ');
-    const pathFrom = arr => {
-      let out = ''; let started = false;
-      arr.forEach((v, i) => { if (v == null) { started = false; return; } const x = pad + (i * (width - 2 * pad)) / Math.max(1, arr.length - 1); const y = height - pad - ((v - min) / (max - min)) * (height - 2 * pad); out += `${started ? 'L' : 'M'} ${x.toFixed(1)} ${y.toFixed(1)} `; started = true; });
-      return out.trim();
+    const ranges = { '1h': 60 * 60 * 1000, '6h': 6 * 60 * 60 * 1000, '24h': 24 * 60 * 60 * 1000, '7d': 7 * 24 * 60 * 60 * 1000 };
+    const duration = ranges[state.period] || ranges['24h'];
+    const gh = chartData(state.history.github, duration);
+    const cf = chartData([...state.history.cloudflare.filter(row => !state.liveEdge || row.timestamp !== state.liveEdge.timestamp), ...(state.liveEdge ? [state.liveEdge] : [])], duration);
+    const all = [...gh, ...cf];
+    $('historyCount').textContent = `${faNumber(all.length)} نمونه`;
+    $('chartRangeLabel').textContent = ({ '1h': '۱ ساعت اخیر', '6h': '۶ ساعت اخیر', '24h': '۲۴ ساعت اخیر', '7d': '۷ روز اخیر' })[state.period];
+    svg.innerHTML = '';
+    if (!all.length) {
+      svg.innerHTML = '<text x="350" y="150" text-anchor="middle" class="chart-placeholder">داده‌ی تاریخی در این بازه وجود ندارد.</text>'; return;
+    }
+    const width = 700, height = 260, left = 48, right = 16, top = 18, bottom = 34;
+    const plotW = width - left - right, plotH = height - top - bottom;
+    const minTime = Date.now() - duration, maxTime = Date.now();
+    const maxValue = Math.max(100, ...all.map(row => row.value));
+    const yMax = Math.ceil(maxValue / 25) * 25;
+    const x = time => left + ((time - minTime) / Math.max(1, duration)) * plotW;
+    const y = value => top + plotH - (value / yMax) * plotH;
+    const ns = 'http://www.w3.org/2000/svg';
+    const add = (tag, attrs, text) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs || {}).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      if (text != null) node.textContent = text;
+      svg.appendChild(node); return node;
     };
-    const grid = [0, .25, .5, .75, 1].map(t => { const y = height - pad - t * (height - 2 * pad); return `<line x1="${pad}" x2="${width-pad}" y1="${y}" y2="${y}" class="chart-grid"/><text x="${pad-8}" y="${y+4}" text-anchor="end" class="chart-label">${Math.round(max*t)}ms</text>`; }).join('');
-    svg.innerHTML = `${grid}<path d="${pathFrom(githubSeries.values)}" class="chart-line github-line"/><path d="${pathFrom(cfSeries.values)}" class="chart-line cf-line"/>${seriesDots(githubSeries.values, 'github', max)}${seriesDots(cfSeries.values, 'cf', max)}`;
+    for (let i = 0; i <= 4; i++) {
+      const value = yMax * i / 4, py = y(value);
+      add('line', { x1: left, y1: py, x2: width - right, y2: py, class: 'chart-grid-line' });
+      add('text', { x: left - 9, y: py + 4, 'text-anchor': 'end', class: 'chart-axis-label' }, String(Math.round(value)));
+    }
+    for (let i = 0; i <= 4; i++) {
+      const time = minTime + duration * i / 4, px = x(time);
+      add('text', { x: px, y: height - 7, 'text-anchor': 'middle', class: 'chart-axis-label' }, new Date(time).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }));
+    }
+    const drawSeries = (points, cls, areaCls, dotCls) => {
+      if (!points.length) return;
+      const ordered = points.slice().sort((a, b) => a.time - b.time);
+      const coords = ordered.map(row => [x(row.time), y(row.value)]);
+      if (coords.length > 1) {
+        const path = coords.map(([px, py], index) => `${index ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`).join(' ');
+        const area = `${path} L ${coords[coords.length - 1][0].toFixed(1)},${(top + plotH).toFixed(1)} L ${coords[0][0].toFixed(1)},${(top + plotH).toFixed(1)} Z`;
+        add('path', { d: area, class: areaCls }); add('path', { d: path, class: cls });
+      }
+      const step = Math.max(1, Math.ceil(coords.length / 20));
+      coords.filter((_, index) => index % step === 0 || index === coords.length - 1).forEach(([px, py]) => add('circle', { cx: px, cy: py, r: 3.4, class: dotCls }));
+    };
+    drawSeries(gh, 'chart-line-gh', 'chart-area-gh', 'chart-dot-gh');
+    drawSeries(cf, 'chart-line-cf', 'chart-area-cf', 'chart-dot-cf');
+    if (!gh.length && !cf.length) add('text', { x: 350, y: 150, 'text-anchor': 'middle', class: 'chart-placeholder' }, 'نمونه‌ی معتبر برای نمودار وجود ندارد.');
   }
 
-  function seriesDots(values, cls, max) {
-    const width = 640, height = 300, pad = 28;
-    return values.map((v, i) => {
-      if (v == null) return '';
-      const x = pad + (i * (width - 2*pad)) / Math.max(1, values.length - 1);
-      const y = height - pad - (v / max) * (height - 2*pad);
-      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" class="chart-dot ${cls}"/>`;
-    }).join('');
-  }
-
-  function seriesFor(snapshots, period) {
-    const sliced = snapshots.slice(-period);
-    return { labels: sliced.map(s => faClock(s.timestamp)), values: sliced.map(s => averageLatency(s.results)) };
-  }
-
-  function averageLatency(results = []) {
-    const values = results.map(r => r.latency).filter(v => v != null);
-    return values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : null;
-  }
-
-  function renderCompare() {
-    const body = $('compareBody');
-    const github = state.sourceLatest.github?.results || [];
-    const cf = state.sourceLatest.cloudflare?.results || [];
-    if (!github.length && !cf.length) { body.innerHTML = `<tr><td colspan="6" class="empty-cell">مقایسه‌ای موجود نیست.</td></tr>`; return; }
-    const map = new Map();
-    [...github.map(r => ['github', r]), ...cf.map(r => ['cloudflare', r])].forEach(([source, row]) => {
-      if (!map.has(row.id)) map.set(row.id, { name: row.name, category: row.category, github: null, cloudflare: null });
-      map.get(row.id)[source] = row;
-    });
-    body.innerHTML = [...map.values()].slice(0, 50).map(row => {
-      const g = row.github, c = row.cloudflare;
-      const diff = g?.latency != null && c?.latency != null ? Math.abs(g.latency - c.latency) : null;
-      return `<tr><td><strong>${esc(row.name)}</strong></td><td>${esc(row.category)}</td><td>${cellFor(g)}</td><td>${cellFor(c)}</td><td>${diff == null ? '—' : `<span class="diff-pill ${diff > 80 ? 'high' : diff > 30 ? 'mid' : ''}">${diff}ms</span>`}</td><td><code>${esc(g?.availability_basis || c?.availability_basis || '—')}</code></td></tr>`;
-    }).join('');
-  }
-
-  function cellFor(row) {
-    if (!row) return `<span class="muted">بدون داده</span>`;
-    return `<span class="table-status ${row.status}"><i></i>${row.status === 'up' ? 'UP' : 'DOWN'} <b>${fmtMs(row.latency)}</b></span>`;
-  }
-
-  function renderResilience(results) {
-    const total = results.length || 1;
-    const up = results.filter(r => r.status === 'up').length;
-    const hasLatency = results.filter(r => r.latency != null).length;
-    const httpBacked = results.filter(r => r.availability_basis === 'https').length;
-    const dnsBacked = results.filter(r => r.availability_basis === 'dns').length;
-    const score = Math.round(((up / total) * 60) + ((hasLatency / total) * 20) + (((httpBacked + dnsBacked) / total) * 20));
-    $('resilienceScore').textContent = `${score}/100`;
-    $('resilienceBar').style.width = `${score}%`;
-    $('resilienceList').innerHTML = [
-      `<li><span class="ok">✓</span> لایه‌ی جایگزین برای ICMP فعال است</li>`,
-      `<li><span class="ok">✓</span> داده‌ی خام همراه با جزئیات probe ذخیره می‌شود</li>`,
-      `<li><span class="ok">✓</span> خرابی یک منبع، کل داشبورد را نمی‌خواباند</li>`,
-      `<li><span class="warn">•</span> Cloudflare ${CONFIG.cloudflareEndpoint ? 'فعال' : 'اختیاری'}</li>`
-    ].join('');
-  }
-
-  function openDetails(id) {
+  function openTargetDetails(id) {
+    const target = [...state.catalog, ...state.dnsCatalog].find(row => row.id === id);
+    const row = state.currentById.get(id);
+    if (!target) return;
     state.selectedId = id;
-    const row = getPrimaryResults().find(x => x.id === id);
-    if (!row) return;
-    $('dialogTitle').textContent = row.name;
+    $('dialogTitle').textContent = target.name;
+    $('dialogSubtitle').textContent = `${target.category || 'DNS'} · ${target.group || '—'} · ${row ? faDateTime(row.timestamp) : 'هنوز داده‌ای ثبت نشده'}`;
+    const status = row?.status || 'unknown';
+    const url = target.url || target.doh_url || '';
+    const fields = [
+      ['وضعیت فعلی', statusInfo(status).label], ['آخرین منبع', row?.source === 'github' ? 'GitHub Actions' : row?.source === 'cloudflare' ? 'Cloudflare Edge' : '—'],
+      ['تأخیر پاسخ', fmtMs(row?.latency)], ['کد HTTP', row?.http_status ?? '—'],
+      ['تأخیر ICMP', fmtMs(row?.icmp_latency)], ['وضعیت ICMP', row?.icmp_status || 'پشتیبانی‌نشده / نامشخص'],
+      ['Packet loss', row?.packet_loss == null ? '—' : `${faNumber(row.packet_loss)}٪`], ['Jitter', fmtMs(row?.jitter)],
+      ['DNS answers', row?.answer_count == null ? '—' : faNumber(row.answer_count)], ['Retry', row?.retry_count == null ? '—' : faNumber(row.retry_count)],
+      ['منطقه', target.region || '—'], ['اهمیت هدف', target.criticality || 'normal']
+    ];
+    const error = row?.error || 'خطایی در آخرین نمونه ثبت نشده است.';
+    const checks = row?.checks ? JSON.stringify(row.checks, null, 2) : JSON.stringify({ availability_basis: row?.availability_basis, http_status: row?.http_status, icmp_status: row?.icmp_status, resolved: row?.resolved, error: row?.error }, null, 2);
     $('dialogContent').innerHTML = `
-      <div class="detail-grid">
-        <div><span>Target</span><b>${esc(row.target)}</b></div>
-        <div><span>Status</span><b class="${row.status}">${row.status === 'up' ? 'ONLINE' : 'OFFLINE'}</b></div>
-        <div><span>Latency</span><b>${fmtMs(row.latency)}</b></div>
-        <div><span>Basis</span><b>${esc(row.availability_basis)}</b></div>
-        <div><span>HTTP</span><b>${row.http_status || '—'} ${fmtMs(row.http_latency)}</b></div>
-        <div><span>DNS</span><b>${fmtMs(row.dns_latency)}</b></div>
-        <div><span>ICMP</span><b>${esc(row.icmp_status)} ${fmtMs(row.icmp_latency)}</b></div>
-        <div><span>Packet Loss</span><b>${row.packet_loss == null ? '—' : `${row.packet_loss}%`}</b></div>
-        <div><span>Jitter</span><b>${fmtMs(row.jitter)}</b></div>
-        <div><span>Last Check</span><b>${faTime(row.timestamp)}</b></div>
-      </div>
-      <pre>${esc(JSON.stringify(row.checks || {}, null, 2))}</pre>`;
-    $('detailDialog').showModal();
+      <div class="detail-hero"><span class="target-icon">${esc(targetInitial(target))}</span><div><strong>${esc(target.name)}</strong><div class="detail-domain">${esc(hostname(url || target.ip || ''))}</div></div><span class="status-pill ${statusClass(status)}">${statusInfo(status).label}</span></div>
+      <div class="detail-grid">${fields.map(([label, value]) => `<div class="detail-field"><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`).join('')}</div>
+      <h3 class="detail-section-title">خطا / پیام آخرین بررسی</h3><pre class="detail-pre">${esc(error)}</pre>
+      <h3 class="detail-section-title">سیگنال‌ها و جزئیات فنی</h3><pre class="detail-pre">${esc(checks)}</pre>
+      <div class="detail-actions">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">باز کردن مقصد ↗</a>` : ''}<a href="${esc(`${CONFIG.workerUrl.replace(/\/$/, '')}/api/status`)}" target="_blank" rel="noopener noreferrer">API زنده ↗</a></div>`;
+    const dialog = $('detailDialog');
+    if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
   }
 
-  function renderEmpty(message) {
-    $('targetGrid').innerHTML = `<div class="empty-state">${esc(message)}</div>`;
-    $('compareBody').innerHTML = `<tr><td colspan="6" class="empty-cell">${esc(message)}</td></tr>`;
-    $('historyCount').textContent = '0 snaps';
-    $('visibleCount').textContent = '0';
+  function exportJson() {
+    const rows = visibleTargets().map(target => ({ target, latest: state.currentById.get(target.id) || null }));
+    downloadFile(`dual-ping-monitor-${isoDay(new Date())}.json`, JSON.stringify({ version: CONFIG.version, exported_at: nowIso(), sources: { github: state.sourceLatest.github?.timestamp || null, cloudflare: state.sourceLatest.cloudflare?.timestamp || null }, targets: rows }, null, 2), 'application/json;charset=utf-8');
+    showToast('خروجی JSON آماده شد.', 'success');
   }
 
-  function updateSystem(kind, text) {
-    const el = $('systemBadge');
-    el.className = `system-badge ${kind}`;
-    el.innerHTML = `<span class="pulse"></span><strong>${esc(text)}</strong>`;
+  function exportCsv() {
+    const rows = visibleTargets();
+    const columns = ['id', 'name', 'url', 'category', 'group', 'status', 'latency', 'http_status', 'icmp_status', 'packet_loss', 'jitter', 'error', 'timestamp'];
+    const quote = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const lines = [columns.map(quote).join(','), ...rows.map(target => {
+      const row = state.currentById.get(target.id) || {};
+      const values = { ...target, ...row };
+      return columns.map(key => quote(Array.isArray(values[key]) ? values[key].join('; ') : values[key])).join(',');
+    })];
+    downloadFile(`dual-ping-monitor-${isoDay(new Date())}.csv`, '\ufeff' + lines.join('\r\n'), 'text/csv;charset=utf-8');
+    showToast('خروجی CSV آماده شد.', 'success');
   }
 
-  function exportData(format) {
-    const payload = state.merged || { date: state.date, sources: { github: state.github, cloudflare: state.cloudflare } };
-    const content = format === 'json' ? JSON.stringify(payload, null, 2) : toCsv();
-    const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/csv;charset=utf-8' });
+  function downloadFile(name, content, type) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `dual-ping-${state.date || 'data'}.${format}`; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  function toCsv() {
-    const rows = [['source','timestamp','name','target','category','status','latency_ms','availability_basis','packet_loss','jitter']];
-    for (const snap of [...state.github, ...state.cloudflare]) for (const r of snap.results) rows.push([snap.source,snap.timestamp,r.name,r.target,r.category,r.status,r.latency ?? '',r.availability_basis,r.packet_loss ?? '',r.jitter ?? '']);
-    return rows.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  }
-
-  function setAutoRefresh(enabled) {
-    state.autoRefresh = enabled;
-    $('autoRefreshBtn').textContent = `⏱ خودکار: ${enabled ? 'روشن' : 'خاموش'}`;
-    clearInterval(state.timer);
-    if (enabled) state.timer = setInterval(loadData, CONFIG.refreshMs);
+    const anchor = document.createElement('a');
+    anchor.href = url; anchor.download = name; document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1200);
   }
 
   function setTheme(theme) {
-    state.theme = theme;
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem(CONFIG.storageKey, theme);
+    const allowed = ['aurora', 'obsidian', 'arctic', 'amethyst', 'ember'];
+    state.theme = allowed.includes(theme) ? theme : CONFIG.defaultTheme;
+    document.documentElement.dataset.theme = state.theme;
+    $('themeSelect').value = state.theme;
+    safeStorageSet(STORAGE_THEME, state.theme);
   }
 
-  function bind() {
-    $('refreshBtn').addEventListener('click', loadData);
-    $('themeBtn').addEventListener('click', () => setTheme(state.theme === 'aurora' ? 'midnight' : 'aurora'));
-    $('autoRefreshBtn').addEventListener('click', () => setAutoRefresh(!state.autoRefresh));
-    $('exportJsonBtn').addEventListener('click', () => exportData('json'));
-    $('exportCsvBtn').addEventListener('click', () => exportData('csv'));
-    $('searchInput').addEventListener('input', e => { state.search = e.target.value; renderTargets(); });
-    $('sortSelect').addEventListener('change', e => { state.sort = e.target.value; renderTargets(); });
-    $('categoryTabs').addEventListener('click', e => {
-      const button = e.target.closest('button[data-category]'); if (!button) return;
-      document.querySelectorAll('#categoryTabs button').forEach(x => x.classList.remove('active')); button.classList.add('active');
-      state.category = button.dataset.category; renderTargets();
+  function setCategory(category) {
+    state.category = category;
+    $('categoryTabs').querySelectorAll('[data-category]').forEach(button => button.classList.toggle('active', button.dataset.category === category));
+    renderTargets();
+  }
+
+  function renderAll() {
+    buildCurrentMap();
+    renderMetrics();
+    renderTargets();
+    renderComparison();
+    renderIncidents();
+    renderChart();
+    updateSourceStatus();
+  }
+
+  async function loadSevenDays() {
+    if (state.extraDaysLoaded) return;
+    const button = document.querySelector('[data-period="7d"]');
+    if (button) button.disabled = true;
+    try { await loadHistorical({ days: 7, append: true }); renderAll(); }
+    catch { showToast('بارگذاری بخشی از تاریخچه‌ی هفت‌روزه ممکن نشد.', 'error'); }
+    finally { if (button) button.disabled = false; }
+  }
+
+  function installEvents() {
+    $('refreshBtn').addEventListener('click', () => refreshLive({ fresh: true }));
+    $('autoRefreshBtn').addEventListener('click', () => {
+      state.autoRefresh = !state.autoRefresh;
+      $('autoRefreshLabel').textContent = `بروزرسانی خودکار: ${state.autoRefresh ? 'روشن' : 'خاموش'}`;
+      $('autoRefreshBtn').classList.toggle('is-off', !state.autoRefresh);
+      showToast(state.autoRefresh ? 'بروزرسانی خودکار فعال شد.' : 'بروزرسانی خودکار متوقف شد.');
+      scheduleAutoRefresh();
     });
-    $('chartTabs').addEventListener('click', e => {
-      const button = e.target.closest('button[data-period]'); if (!button) return;
-      document.querySelectorAll('#chartTabs button').forEach(x => x.classList.remove('active')); button.classList.add('active'); state.period = Number(button.dataset.period); renderChart();
-    });
+    $('exportJsonBtn').addEventListener('click', exportJson);
+    $('exportCsvBtn').addEventListener('click', exportCsv);
+    $('themeSelect').addEventListener('change', event => setTheme(event.target.value));
+    $('searchInput').addEventListener('input', event => { state.search = event.target.value || ''; renderTargets(); });
+    $('groupSelect').addEventListener('change', event => { state.group = event.target.value; renderTargets(); });
+    $('sortSelect').addEventListener('change', event => { state.sort = event.target.value; renderTargets(); });
+    $('categoryTabs').querySelectorAll('[data-category]').forEach(button => button.addEventListener('click', () => setCategory(button.dataset.category)));
+    $('chartTabs').querySelectorAll('[data-period]').forEach(button => button.addEventListener('click', async () => {
+      state.period = button.dataset.period;
+      $('chartTabs').querySelectorAll('[data-period]').forEach(item => item.classList.toggle('active', item === button));
+      if (state.period === '7d') await loadSevenDays();
+      renderChart();
+    }));
     $('closeDialog').addEventListener('click', () => $('detailDialog').close());
-    $('detailsBtn').addEventListener('click', () => $('shortcutsDialog').showModal());
     $('closeShortcuts').addEventListener('click', () => $('shortcutsDialog').close());
-    $('clearCacheBtn').addEventListener('click', () => { localStorage.removeItem(CONFIG.storageKey); localStorage.removeItem('dpm-cloudflare-endpoint'); location.reload(); });
-    $('edgeConfigBtn').addEventListener('click', () => {
-      const value = prompt('آدرس Cloudflare Worker را وارد کنید:', CONFIG.cloudflareEndpoint);
-      if (value == null) return;
-      if (value.trim()) localStorage.setItem('dpm-cloudflare-endpoint', value.trim()); else localStorage.removeItem('dpm-cloudflare-endpoint');
-      location.reload();
+    $('detailDialog').addEventListener('click', event => { if (event.target === $('detailDialog')) $('detailDialog').close(); });
+    $('shortcutsDialog').addEventListener('click', event => { if (event.target === $('shortcutsDialog')) $('shortcutsDialog').close(); });
+    $('clearCacheBtn').addEventListener('click', async () => {
+      safeStorageRemove(STORAGE_THEME);
+      try { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); } catch {}
+      setTheme(CONFIG.defaultTheme);
+      showToast('کش محلی پاک شد؛ برای دریافت نسخه‌ی تازه صفحه را بارگذاری کنید.', 'success');
     });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { $('detailDialog').open && $('detailDialog').close(); $('shortcutsDialog').open && $('shortcutsDialog').close(); }
-      if (e.target.matches('input,textarea,select')) return;
-      if (e.key.toLowerCase() === 'r') loadData();
-      if (e.key === '/') { e.preventDefault(); $('searchInput').focus(); }
-      if (e.key.toLowerCase() === 't') setTheme(state.theme === 'aurora' ? 'midnight' : 'aurora');
+    document.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const tag = event.target?.tagName?.toLowerCase();
+      const typing = ['input', 'textarea', 'select'].includes(tag) || event.target?.isContentEditable;
+      if (event.key === 'Escape') { $('detailDialog').close?.(); $('shortcutsDialog').close?.(); return; }
+      if (typing) return;
+      if (event.key.toLowerCase() === 'r') refreshLive({ quiet: false, fresh: true });
+      if (event.key === '/') { event.preventDefault(); $('searchInput').focus(); }
+      if (event.key.toLowerCase() === 't') {
+        const themes = ['aurora', 'obsidian', 'arctic', 'amethyst', 'ember'];
+        setTheme(themes[(themes.indexOf(state.theme) + 1) % themes.length]);
+      }
+      if (event.key === '?') { const dialog = $('shortcutsDialog'); if (!dialog.open) dialog.showModal(); }
+      const periods = { '1': '1h', '2': '6h', '3': '24h', '4': '7d' };
+      if (periods[event.key]) document.querySelector(`[data-period="${periods[event.key]}"]`)?.click();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && state.autoRefresh) refreshLive({ quiet: true });
     });
   }
 
-  setTheme(state.theme);
-  bind();
-  setAutoRefresh(true);
-  loadData();
+  function scheduleAutoRefresh() {
+    if (state.refreshTimer) window.clearInterval(state.refreshTimer);
+    state.refreshTimer = null;
+    if (state.autoRefresh) state.refreshTimer = window.setInterval(() => refreshLive({ quiet: true }), CONFIG.autoRefreshMs || 60000);
+  }
+
+  async function init() {
+    setTheme(state.theme);
+    installEvents();
+    $('heroVersion').textContent = `DPM / ${CONFIG.version}`;
+    let finished = false;
+    const startup = (async () => {
+      const errors = [];
+      try { await loadCatalog(); } catch (error) { errors.push(error); }
+      try { await loadHistorical({ days: 2 }); } catch (error) { errors.push(error); }
+      finished = true;
+      return errors;
+    })();
+    const errors = await Promise.race([startup, sleep(6000).then(() => null)]);
+    if (errors?.length) {
+      state.lastError = errors[0];
+      showToast('بخشی از کاتالوگ یا تاریخچه در دسترس نبود؛ دریافت زنده همچنان فعال است.', 'error');
+    }
+    buildCurrentMap();
+    renderAll();
+    hideBootScreen();
+    if (!finished) {
+      startup.then(lateErrors => {
+        if (lateErrors.length) state.lastError = lateErrors[0];
+        buildCurrentMap(); renderAll();
+      }).catch(() => {});
+    }
+    // The edge probe runs independently, so the dashboard does not wait for
+    // a slow or unreachable target before becoming usable.
+    refreshLive({ quiet: true });
+    scheduleAutoRefresh();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
 })();

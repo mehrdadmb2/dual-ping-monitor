@@ -1,17 +1,16 @@
-DUAL PING MONITOR v2
+DUAL PING MONITOR v4 — COMPLETE REPLACEMENT PACKAGE
 
-This bundle contains the files that should replace the current monitoring engine and dashboard.
+1. Back up the current repository and retain all history under data/ and docs/data/.
+2. Extract this ZIP and upload the contents of the project folder to the repository root, replacing matching files.
+3. In GitHub Settings -> Actions -> General -> Workflow permissions, enable Read and write permissions.
+4. In GitHub Settings -> Pages, publish main -> /docs.
+5. Deploy the Cloudflare Worker from the repository root:
+   npx wrangler login
+   npx wrangler deploy --config cloudflare/wrangler.toml
+6. Ensure the Worker has a GH_TOKEN secret (fine-grained token, Contents read/write, only this repository):
+   npx wrangler secret put GH_TOKEN --config cloudflare/wrangler.toml
+7. Run Actions -> Dual Ping Monitor v4 -> Run workflow once.
+8. Confirm the new files under data/github/, data/merged/, docs/data/github/, docs/data/merged/, docs/data/cloudflare/ and the date index.
+9. Open https://mehrdadmb2.github.io/dual-ping-monitor/ and hard-refresh with Ctrl+F5.
 
-IMPORTANT:
-1. Delete/disable old workflows:
-   .github/workflows/ping-check.yml
-   .github/workflows/ping-github.yml
-   .github/workflows/merge-data.yml
-2. Copy this bundle's .github, docs, cloudflare, targets.json, README.md and MIGRATION.md into the repository root.
-3. Keep the existing data/ history. The included data/index.json is only the lightweight date index.
-4. Run Actions -> Dual Ping Monitor -> Run workflow once.
-5. Verify a new data/github/YYYY-MM-DD.json, data/merged/YYYY-MM-DD.json and data/index.json are committed.
-6. GitHub Pages should continue using main/docs.
-7. Cloudflare is optional; deploy cloudflare/worker.js and then set its URL from the dashboard's "تنظیم Cloudflare" button.
-
-No GitHub or Cloudflare secret is embedded in this bundle.
+Do not delete old history. The package contains no API token or secret. More instructions are in UPGRADE-GUIDE-FA.md.

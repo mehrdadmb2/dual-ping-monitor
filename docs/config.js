@@ -1,9 +1,15 @@
-window.DPM_CONFIG = Object.freeze({
-  dataBase: 'data/',
-  githubLatest: 'data/latest.json',
-  dataIndex: 'data/index.json',
-  githubRoot: 'data/github/',
-  cloudflareApiUrl: '',
-  autoRefreshMs: 120000,
-  staleAfterMs: 25 * 60 * 1000
-});
+(() => {
+  'use strict';
+  window.DPM_CONFIG = Object.freeze({
+    version: '4.0.0',
+    schemaVersion: '4.0',
+    dataBase: 'data/',
+    targetCatalog: 'targets.json',
+    workerUrl: 'https://dual-ping-worker.game-developer-mb.workers.dev',
+    autoRefreshMs: 60000,
+    staleAfterMs: 25 * 60 * 1000,
+    defaultTheme: 'aurora',
+    maxHistoryDays: 7,
+    maxSnapshotsPerSource: 480
+  });
+})();

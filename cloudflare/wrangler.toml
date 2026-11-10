@@ -1,19 +1,21 @@
 name = "dual-ping-worker"
 main = "worker.js"
-compatibility_date = "2026-10-01"
+compatibility_date = "2026-11-10"
 workers_dev = true
 
 [vars]
-PROBE_TIMEOUT_MS = "9000"
+PROBE_TIMEOUT_MS = "6500"
+PROBE_CONCURRENCY = "5"
+DNS_TEST_NAME = "example.com"
 GH_REPO = "mehrdadmb2/dual-ping-monitor"
 GH_BRANCH = "main"
-# Optional exact origin restriction; Pages URL is shown below.
-# ALLOWED_ORIGINS = "https://mehrdadmb2.github.io"
 
 [triggers]
 crons = ["*/5 * * * *"]
 
-# Optional KV cache for the most recent snapshot:
+# Optional KV cache for the most recent result:
+# Create one with: npx wrangler kv namespace create DPM_MONITOR
+# Then add its ID below and deploy again.
 # [[kv_namespaces]]
 # binding = "MONITOR_KV"
 # id = "REPLACE_WITH_REAL_NAMESPACE_ID"

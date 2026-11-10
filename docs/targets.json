@@ -1,0 +1,594 @@
+{
+  "version": 4,
+  "schema": "dual-ping-targets/4",
+  "probe_defaults": {
+    "timeout_ms": 6500,
+    "icmp_timeout_sec": 2,
+    "icmp_samples": 3,
+    "concurrency": 7,
+    "dns_test_name": "example.com",
+    "history_limit": 320
+  },
+  "sites": [
+    {
+      "id": "mci",
+      "name": "Hamrah Aval",
+      "url": "https://mci.ir/",
+      "category": "ایرانی",
+      "group": "اپراتور و اینترنت",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "telecom",
+        "mobile"
+      ]
+    },
+    {
+      "id": "irancell",
+      "name": "Irancell",
+      "url": "https://irancell.ir/",
+      "category": "ایرانی",
+      "group": "اپراتور و اینترنت",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "telecom",
+        "mobile"
+      ]
+    },
+    {
+      "id": "shatel",
+      "name": "Shatel",
+      "url": "https://www.shatel.ir/",
+      "category": "ایرانی",
+      "group": "اپراتور و اینترنت",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "isp",
+        "internet"
+      ]
+    },
+    {
+      "id": "digikala",
+      "name": "Digikala",
+      "url": "https://www.digikala.com/",
+      "category": "ایرانی",
+      "group": "بازار آنلاین",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "shopping",
+        "e-commerce"
+      ]
+    },
+    {
+      "id": "divar",
+      "name": "Divar",
+      "url": "https://divar.ir/",
+      "category": "ایرانی",
+      "group": "بازار آنلاین",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "marketplace",
+        "classifieds"
+      ]
+    },
+    {
+      "id": "torob",
+      "name": "Torob",
+      "url": "https://torob.com/",
+      "category": "ایرانی",
+      "group": "بازار آنلاین",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "shopping",
+        "price-comparison"
+      ]
+    },
+    {
+      "id": "snapp",
+      "name": "Snapp",
+      "url": "https://snapp.ir/",
+      "category": "ایرانی",
+      "group": "خدمات روزمره",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "transport",
+        "ride-hailing"
+      ]
+    },
+    {
+      "id": "tapsi",
+      "name": "Tapsi",
+      "url": "https://tapsi.ir/",
+      "category": "ایرانی",
+      "group": "خدمات روزمره",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "transport",
+        "ride-hailing"
+      ]
+    },
+    {
+      "id": "aparat",
+      "name": "Aparat",
+      "url": "https://www.aparat.com/",
+      "category": "ایرانی",
+      "group": "رسانه و محتوا",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "video",
+        "media"
+      ]
+    },
+    {
+      "id": "digiato",
+      "name": "Digiato",
+      "url": "https://digiato.com/",
+      "category": "ایرانی",
+      "group": "رسانه و محتوا",
+      "region": "IR",
+      "criticality": "low",
+      "tags": [
+        "technology",
+        "news"
+      ]
+    },
+    {
+      "id": "varzesh3",
+      "name": "Varzesh3",
+      "url": "https://www.varzesh3.com/",
+      "category": "ایرانی",
+      "group": "رسانه و محتوا",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "sports",
+        "news"
+      ]
+    },
+    {
+      "id": "cafebazaar",
+      "name": "Cafe Bazaar",
+      "url": "https://cafebazaar.ir/",
+      "category": "ایرانی",
+      "group": "نرم‌افزار و اپلیکیشن",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "android",
+        "apps"
+      ]
+    },
+    {
+      "id": "myket",
+      "name": "Myket",
+      "url": "https://myket.ir/",
+      "category": "ایرانی",
+      "group": "نرم‌افزار و اپلیکیشن",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "android",
+        "apps"
+      ]
+    },
+    {
+      "id": "balad",
+      "name": "Balad",
+      "url": "https://balad.ir/",
+      "category": "ایرانی",
+      "group": "نقشه و مسیریابی",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "maps",
+        "navigation"
+      ]
+    },
+    {
+      "id": "neshan",
+      "name": "Neshan",
+      "url": "https://neshan.org/",
+      "category": "ایرانی",
+      "group": "نقشه و مسیریابی",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "maps",
+        "navigation"
+      ]
+    },
+    {
+      "id": "bankmellat",
+      "name": "Bank Mellat",
+      "url": "https://bankmellat.ir/",
+      "category": "ایرانی",
+      "group": "پرداخت و بانکداری",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "banking",
+        "finance"
+      ]
+    },
+    {
+      "id": "bmi",
+      "name": "Bank Melli Iran",
+      "url": "https://bmi.ir/",
+      "category": "ایرانی",
+      "group": "پرداخت و بانکداری",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "banking",
+        "finance"
+      ]
+    },
+    {
+      "id": "shaparak",
+      "name": "Shaparak",
+      "url": "https://shaparak.ir/",
+      "category": "ایرانی",
+      "group": "پرداخت و بانکداری",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "payment",
+        "banking"
+      ]
+    },
+    {
+      "id": "zarinpal",
+      "name": "Zarinpal",
+      "url": "https://www.zarinpal.com/",
+      "category": "ایرانی",
+      "group": "پرداخت و بانکداری",
+      "region": "IR",
+      "criticality": "high",
+      "tags": [
+        "payment",
+        "fintech"
+      ]
+    },
+    {
+      "id": "bale",
+      "name": "Bale",
+      "url": "https://bale.ai/",
+      "category": "ایرانی",
+      "group": "پیام‌رسان و شبکه اجتماعی",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "messaging",
+        "social"
+      ]
+    },
+    {
+      "id": "eitaa",
+      "name": "Eitaa",
+      "url": "https://eitaa.com/",
+      "category": "ایرانی",
+      "group": "پیام‌رسان و شبکه اجتماعی",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "messaging",
+        "social"
+      ]
+    },
+    {
+      "id": "rubika",
+      "name": "Rubika",
+      "url": "https://rubika.ir/",
+      "category": "ایرانی",
+      "group": "پیام‌رسان و شبکه اجتماعی",
+      "region": "IR",
+      "criticality": "normal",
+      "tags": [
+        "messaging",
+        "social"
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "url": "https://www.cloudflare.com/",
+      "probe_url": "https://www.cloudflare.com/cdn-cgi/trace",
+      "category": "جهانی",
+      "group": "توسعه و زیرساخت",
+      "region": "GLOBAL",
+      "criticality": "high",
+      "tags": [
+        "cdn",
+        "dns",
+        "edge"
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "url": "https://github.com/",
+      "category": "جهانی",
+      "group": "توسعه و زیرساخت",
+      "region": "GLOBAL",
+      "criticality": "high",
+      "tags": [
+        "git",
+        "development"
+      ]
+    },
+    {
+      "id": "github-api",
+      "name": "GitHub API",
+      "url": "https://api.github.com/",
+      "category": "جهانی",
+      "group": "توسعه و زیرساخت",
+      "region": "GLOBAL",
+      "criticality": "high",
+      "tags": [
+        "api",
+        "development"
+      ]
+    },
+    {
+      "id": "npm-registry",
+      "name": "npm Registry",
+      "url": "https://registry.npmjs.org/",
+      "probe_url": "https://registry.npmjs.org/-/ping",
+      "category": "جهانی",
+      "group": "توسعه و زیرساخت",
+      "region": "GLOBAL",
+      "criticality": "high",
+      "tags": [
+        "npm",
+        "packages"
+      ]
+    },
+    {
+      "id": "wikipedia",
+      "name": "Wikipedia",
+      "url": "https://www.wikipedia.org/",
+      "category": "جهانی",
+      "group": "رسانه و محتوا",
+      "region": "GLOBAL",
+      "criticality": "low",
+      "tags": [
+        "knowledge",
+        "media"
+      ]
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "url": "https://www.youtube.com/",
+      "probe_url": "https://www.youtube.com/generate_204",
+      "category": "جهانی",
+      "group": "رسانه و محتوا",
+      "region": "GLOBAL",
+      "criticality": "normal",
+      "tags": [
+        "video",
+        "media"
+      ]
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com/",
+      "category": "جهانی",
+      "group": "هوش مصنوعی",
+      "region": "GLOBAL",
+      "criticality": "normal",
+      "tags": [
+        "ai",
+        "productivity"
+      ]
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "url": "https://www.google.com/",
+      "probe_url": "https://www.google.com/generate_204",
+      "category": "جهانی",
+      "group": "وب و جستجو",
+      "region": "GLOBAL",
+      "criticality": "high",
+      "tags": [
+        "search",
+        "web"
+      ]
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "url": "https://telegram.org/",
+      "category": "جهانی",
+      "group": "پیام‌رسان و شبکه اجتماعی",
+      "region": "GLOBAL",
+      "criticality": "normal",
+      "tags": [
+        "messaging",
+        "social"
+      ]
+    },
+    {
+      "id": "dual-ping-pages",
+      "name": "Dual Ping Dashboard",
+      "url": "https://mehrdadmb2.github.io/dual-ping-monitor/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "high",
+      "tags": [
+        "monitoring",
+        "github-pages",
+        "self-check"
+      ]
+    },
+    {
+      "id": "github-page-insights",
+      "name": "GitHub Page Insights",
+      "url": "https://mehrdadmb2.github.io/github-page-insights/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "normal",
+      "tags": [
+        "analytics",
+        "github-pages"
+      ]
+    },
+    {
+      "id": "githuby-card",
+      "name": "GitHuby Card Studio",
+      "url": "https://mehrdadmb2.github.io/githuby-card-studio/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "normal",
+      "tags": [
+        "personal",
+        "github-pages"
+      ]
+    },
+    {
+      "id": "imdb-showcase",
+      "name": "IMDb Showcase",
+      "url": "https://mehrdadmb2.github.io/imdb-showcase/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "low",
+      "tags": [
+        "personal",
+        "github-pages"
+      ]
+    },
+    {
+      "id": "mehrdad-dev",
+      "name": "Mehrdad Dev",
+      "url": "https://mehrdadmb2.github.io/mehrdad-dev/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "high",
+      "tags": [
+        "portfolio",
+        "github-pages"
+      ]
+    },
+    {
+      "id": "pysmart-home",
+      "name": "PySmartHome PC",
+      "url": "https://mehrdadmb2.github.io/PySmartHome-PC/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "normal",
+      "tags": [
+        "personal",
+        "github-pages"
+      ]
+    },
+    {
+      "id": "v2ray-sub",
+      "name": "V2ray Sub",
+      "url": "https://mehrdadmb2.github.io/V2ray_Sub/",
+      "category": "پروژه‌های شخصی",
+      "group": "GitHub Pages",
+      "region": "PERSONAL",
+      "criticality": "normal",
+      "tags": [
+        "personal",
+        "github-pages"
+      ]
+    }
+  ],
+  "dns": [
+    {
+      "id": "cloudflare-dns",
+      "name": "Cloudflare DNS",
+      "ip": "1.1.1.1",
+      "doh_url": "https://cloudflare-dns.com/dns-query",
+      "category": "DNS",
+      "group": "جهانی",
+      "region": "GLOBAL",
+      "tags": [
+        "privacy",
+        "dns-over-https"
+      ]
+    },
+    {
+      "id": "google-dns",
+      "name": "Google DNS",
+      "ip": "8.8.8.8",
+      "doh_url": "https://dns.google/dns-query",
+      "category": "DNS",
+      "group": "جهانی",
+      "region": "GLOBAL",
+      "tags": [
+        "public-resolver",
+        "dns-over-https"
+      ]
+    },
+    {
+      "id": "quad9",
+      "name": "Quad9",
+      "ip": "9.9.9.9",
+      "doh_url": "https://dns.quad9.net/dns-query",
+      "category": "DNS",
+      "group": "جهانی",
+      "region": "GLOBAL",
+      "tags": [
+        "security",
+        "dns-over-https"
+      ]
+    },
+    {
+      "id": "adguard-dns",
+      "name": "AdGuard DNS",
+      "ip": "94.140.14.14",
+      "doh_url": "https://dns.adguard-dns.com/dns-query",
+      "category": "DNS",
+      "group": "جهانی",
+      "region": "GLOBAL",
+      "tags": [
+        "privacy",
+        "filtering"
+      ]
+    },
+    {
+      "id": "alidns",
+      "name": "AliDNS",
+      "ip": "223.5.5.5",
+      "doh_url": "https://dns.alidns.com/dns-query",
+      "category": "DNS",
+      "group": "منطقه‌ای",
+      "region": "ASIA",
+      "tags": [
+        "regional",
+        "dns-over-https"
+      ]
+    },
+    {
+      "id": "dnspod",
+      "name": "DNSPod",
+      "ip": "119.29.29.29",
+      "doh_url": "https://doh.pub/dns-query",
+      "category": "DNS",
+      "group": "منطقه‌ای",
+      "region": "ASIA",
+      "tags": [
+        "regional",
+        "dns-over-https"
+      ]
+    }
+  ]
+}

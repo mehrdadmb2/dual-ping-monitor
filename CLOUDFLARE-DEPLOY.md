@@ -1,34 +1,57 @@
-# Cloudflare Worker v3 deployment
+# Cloudflare Worker v4 deployment
 
-This Worker makes real HTTP/HTTPS requests from Cloudflare's edge. Cloudflare Workers do not support raw ICMP echo sockets, so it does not fake ping results or claim ICMP data.
+The v4 Worker uses the same Worker name and `workers.dev` endpoint as the previous deployment. It probes 38 websites and 6 DNS-over-HTTPS resolvers from Cloudflare Edge.
 
-## Deploy with Wrangler
+## Deploy
+
+Run these commands from the repository root:
 
 ```powershell
-cd cloudflare
 npx wrangler login
-npx wrangler deploy
+npx wrangler deploy --config cloudflare/wrangler.toml
 ```
 
-The worker name is `dual-ping-worker`; if your account's workers.dev subdomain is `game-developer-mb`, its URL should be `https://dual-ping-worker.game-developer-mb.workers.dev`.
+If Wrangler is already authenticated, skip `login`.
 
-## Add GitHub persistence secret (optional)
+## Configure GitHub history persistence
 
-The Worker can write each scheduled Cloudflare snapshot to `data/cloudflare/YYYY-MM-DD.json`. Create a GitHub fine-grained PAT with **Contents: Read and write** for only `mehrdadmb2/dual-ping-monitor`, then set it as a Worker secret (never commit it):
+Create a fine-grained GitHub token restricted to `mehrdadmb2/dual-ping-monitor` with **Contents: Read and write**. Set it as a Worker secret:
 
 ```powershell
-npx wrangler secret put GH_TOKEN
+npx wrangler secret put GH_TOKEN --config cloudflare/wrangler.toml
 ```
 
-Paste the token only at the interactive prompt. `GH_REPO` and `GH_BRANCH` are already set in `wrangler.toml`. If the token is not set, the Worker still probes live and serves JSON, but it won't persist snapshots to GitHub.
+Paste the token at the hidden prompt. Never place it in this repository, `wrangler.toml`, frontend configuration, or GitHub Pages. An existing `GH_TOKEN` secret remains configured across a normal Worker deployment.
 
-## Optional KV latest-snapshot cache
+The Worker writes only to `docs/data/cloudflare/YYYY-MM-DD.json`. The GitHub Actions workflow owns `data/github/`, `data/merged/`, the date index, and their published copies. This separation avoids two automation systems overwriting the same daily data file.
+
+If the token is absent or invalid, live probing still works; only historical persistence is affected.
+
+## Endpoints
+
+```text
+GET https://dual-ping-worker.game-developer-mb.workers.dev/health
+GET https://dual-ping-worker.game-developer-mb.workers.dev/api/health
+GET https://dual-ping-worker.game-developer-mb.workers.dev/api/status
+GET https://dual-ping-worker.game-developer-mb.workers.dev/api/latest
+GET https://dual-ping-worker.game-developer-mb.workers.dev/api/config
+```
+
+`/api/latest` first returns the latest scheduled snapshot from KV (when configured) or the public GitHub history file; it falls back to a live probe only before the first stored sample. The dashboard uses this low-cost endpoint for automatic refresh. `/api/status` always performs a fresh probe and is used by the manual refresh action. `/health` returns runtime and publisher configuration metadata without performing a full probe. `/api/config` returns the active target catalog.
+
+## Scheduled monitoring
+
+The Cron trigger runs every five minutes. The Worker performs HTTP(S) and DNS-over-HTTPS probes. Raw ICMP sockets are not available in the Worker runtime; ICMP fields are therefore marked unsupported rather than fabricated.
+
+The current target catalog is limited to 44 combined website/DNS entries, and the Worker uses a maximum of five simultaneous probe tasks. This preserves request budget for history reads/writes and retry handling. Keep redirects in manual mode: a `3xx` response proves that the endpoint answered, while following the redirect would consume another outbound request.
+
+## Tail logs
 
 ```powershell
-npx wrangler kv namespace create DPM_MONITOR
+npx wrangler tail --config cloudflare/wrangler.toml
 ```
 
-Copy the returned ID into the commented `[[kv_namespaces]]` binding in `wrangler.toml`, uncomment it, and deploy again. KV caches only the latest snapshot; GitHub JSON files hold daily snapshots.
+Useful log messages include `[DPM] Scheduled snapshot stored` and detailed GitHub API persistence errors.
 
 ## Smoke tests
 
@@ -38,21 +61,23 @@ curl.exe -sS https://dual-ping-worker.game-developer-mb.workers.dev/api/status
 curl.exe -sS https://dual-ping-worker.game-developer-mb.workers.dev/api/config
 ```
 
-Expected status JSON fields: `timestamp`, `source`, `version`, `total`, `up`, `down`, `duration_ms`, and `results[]`. Each result includes real `http_status`, `latency`, `availability_basis`, and per-request diagnostics. `4xx` is treated as reachable because an HTTP response proves the server answered; `5xx` or transport/timeout failures are marked down in this schema.
+Expected live response fields include `timestamp`, `source`, `version`, `total`, `up`, `degraded`, `down`, `duration_ms`, and `results[]`. Each result includes a real HTTP status/latency or DNS response information.
 
-## Security and limits
+## Failure interpretation
 
-- Never put `GH_TOKEN` in the repository or browser configuration.
-- The optional token is only used server-side by Cloudflare.
-- The Worker accepts only HTTP/HTTPS targets and rejects obvious localhost/private-IP/metadata targets.
-- Keep `TARGETS_JSON` under 30 entries. Every probe is bounded by `PROBE_TIMEOUT_MS`.
-- The cron runs every five minutes. Do not set a very short schedule for a large target list on a free plan.
+- `publisherConfigured: false`: `GH_TOKEN` is missing or `GH_REPO` is not configured.
+- GitHub HTTP 401: the token is invalid, expired, or revoked.
+- GitHub HTTP 403: repository Contents permission, repository access, or API rate limit issue.
+- GitHub HTTP 404 while reading a new daily path: expected for the first write of a new day; the Worker creates the file.
+- A successful `/api/status` with no new `docs/data/cloudflare/` history: live probing is working but GitHub persistence needs attention.
+- HTTP 4xx website result: reachable but restricted/degraded; HTTP 5xx or transport timeout is down.
 
+## Optional KV cache
 
-## Verify GitHub storage and Pages data
+KV is not required for the dashboard or history. The Worker can persist daily snapshots directly through the GitHub Contents API. To enable a latest-snapshot KV cache later, create a namespace:
 
-- Run `npx wrangler secret list` from this folder and ensure `GH_TOKEN` is listed. If not, run `npx wrangler secret put GH_TOKEN` and paste a fine-grained token with Contents read/write for the target repository.
-- Deploy the revised worker with `npx wrangler deploy`. `/health` reports `publisherConfigured: true` only when both the secret and repository variable are present.
-- Run `npx wrangler tail` and wait for the next five-minute scheduled run. A successful write logs `GitHub history saved: data/cloudflare/YYYY-MM-DD.json`. A 401/403 means token or permissions; 404 usually means repository or branch/path configuration.
-- GitHub Pages publishes the `/docs` directory, so the workflow copies generated root `data/` into `docs/data/`. Run the `Dual Ping Monitor` workflow manually once from GitHub Actions to seed/update the published data.
-- Page files must be served from `main` → `/docs`. Open `https://mehrdadmb2.github.io/dual-ping-monitor/data/index.json` and confirm it returns JSON rather than a 404.
+```powershell
+npx wrangler kv namespace create DPM_MONITOR
+```
+
+Add the returned namespace ID to the commented `[[kv_namespaces]]` section in `cloudflare/wrangler.toml`, uncomment the binding, and deploy again.
