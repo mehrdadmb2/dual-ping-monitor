@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../..');
 const targetsPath = path.join(root, 'targets.json');
@@ -46,10 +47,30 @@ for (const [kind, collection] of [['site', targets.sites || []], ['dns', targets
 
 const requiredFiles = [
   '.github/scripts/ping.js', '.github/scripts/merge.js', '.github/scripts/validate.js', '.github/scripts/smoke-test.js',
-  '.github/workflows/monitor.yml', 'cloudflare/worker.js', 'cloudflare/wrangler.toml',
-  'docs/index.html', 'docs/style.css', 'docs/script.js', 'docs/config.js', 'docs/targets.json'
+  '.github/workflows/monitor.yml', '.github/scripts/ui-bootstrap-test.js', '.github/scripts/service-worker-test.js', 'cloudflare/worker.js', 'cloudflare/wrangler.toml',
+  'docs/index.html', 'docs/style.css', 'docs/script.js', 'docs/config.js', 'docs/sw.js', 'docs/targets.json'
 ];
 for (const relative of requiredFiles) if (!fs.existsSync(path.join(root, relative))) fail(`Required project file is missing: ${relative}`);
+
+// Keep HTML IDs and JavaScript selectors synchronized; a missing node can break init().
+const htmlPath = path.join(root, 'docs', 'index.html');
+const appScriptPath = path.join(root, 'docs', 'script.js');
+if (fs.existsSync(htmlPath) && fs.existsSync(appScriptPath)) {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const appScript = fs.readFileSync(appScriptPath, 'utf8');
+  const htmlIds = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+  const idSet = new Set(htmlIds);
+  if (idSet.size !== htmlIds.length) fail('docs/index.html contains duplicate element IDs');
+  for (const match of appScript.matchAll(/\$\(['"]([^'"]+)['"]\)/g)) {
+    if (!idSet.has(match[1])) fail(`docs/script.js references missing HTML id: ${match[1]}`);
+  }
+  if (!html.includes('__DPM_BOOT_GUARD__')) fail('Independent boot recovery guard is missing from docs/index.html');
+  if (!html.includes('script.js?v=4.0.1')) fail('Dashboard script cache-busting version is missing');
+  for (const [index, match] of [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].entries()) {
+    try { new vm.Script(match[1], { filename: `docs/index.html:inline-script-${index + 1}` }); }
+    catch (error) { fail(`Inline HTML script ${index + 1} has a syntax error: ${error.message}`); }
+  }
+}
 
 const workerPath = path.join(root, 'cloudflare', 'worker.js');
 if (fs.existsSync(workerPath)) {

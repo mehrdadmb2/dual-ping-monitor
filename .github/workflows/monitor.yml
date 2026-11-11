@@ -1,4 +1,4 @@
-name: Dual Ping Monitor v4
+name: Dual Ping Monitor v4.0.1
 
 on:
   schedule:
@@ -36,10 +36,17 @@ jobs:
           node --check .github/scripts/merge.js
           node --check .github/scripts/validate.js
           node --check .github/scripts/smoke-test.js
+          node --check .github/scripts/ui-bootstrap-test.js
+          node --check .github/scripts/service-worker-test.js
+          node --check docs/script.js
+          node --check docs/config.js
+          node --check docs/sw.js
           cp cloudflare/worker.js /tmp/dual-ping-worker-check.mjs
           node --check /tmp/dual-ping-worker-check.mjs
           node .github/scripts/validate.js
           node .github/scripts/smoke-test.js
+          node .github/scripts/ui-bootstrap-test.js
+          node .github/scripts/service-worker-test.js
 
       - name: Run resilient probes
         env:
