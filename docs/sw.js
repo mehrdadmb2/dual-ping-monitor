@@ -1,6 +1,6 @@
 'use strict';
-const CACHE_NAME = 'dpm-shell-v4';
-const SHELL = ['./', './index.html', './style.css', './script.js', './config.js', './manifest.webmanifest', './targets.json', './icon.svg'];
+const CACHE_NAME = 'dpm-shell-v4.0.1';
+const SHELL = ['./', './index.html', './style.css?v=4.0.1', './script.js?v=4.0.1', './config.js?v=4.0.1', './manifest.webmanifest', './targets.json', './icon.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -9,7 +9,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => key.startsWith('dpm-shell-') && key !== CACHE_NAME).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });

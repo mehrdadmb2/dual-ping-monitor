@@ -4,13 +4,10 @@ DUAL PING MONITOR v4 — COMPLETE REPLACEMENT PACKAGE
 2. Extract this ZIP and upload the contents of the project folder to the repository root, replacing matching files.
 3. In GitHub Settings -> Actions -> General -> Workflow permissions, enable Read and write permissions.
 4. In GitHub Settings -> Pages, publish main -> /docs.
-5. Deploy the Cloudflare Worker from the repository root:
-   npx wrangler login
-   npx wrangler deploy --config cloudflare/wrangler.toml
-6. Ensure the Worker has a GH_TOKEN secret (fine-grained token, Contents read/write, only this repository):
-   npx wrangler secret put GH_TOKEN --config cloudflare/wrangler.toml
-7. Run Actions -> Dual Ping Monitor v4 -> Run workflow once.
-8. Confirm the new files under data/github/, data/merged/, docs/data/github/, docs/data/merged/, docs/data/cloudflare/ and the date index.
-9. Open https://mehrdadmb2.github.io/dual-ping-monitor/ and hard-refresh with Ctrl+F5.
+5. No Cloudflare Worker redeploy is required for the loading-screen fix; its current API remains compatible.
+6. Run Actions -> Dual Ping Monitor v4.0.1 -> Run workflow once.
+7. Confirm the new files under data/github/, data/merged/, docs/data/github/, docs/data/merged/, docs/data/cloudflare/ and the date index.
+8. Open https://mehrdadmb2.github.io/dual-ping-monitor/ and hard-refresh with Ctrl+F5.
+9. Redeploy the Worker only if you separately changed cloudflare/worker.js or cloudflare/wrangler.toml.
 
 Do not delete old history. The package contains no API token or secret. More instructions are in UPGRADE-GUIDE-FA.md.

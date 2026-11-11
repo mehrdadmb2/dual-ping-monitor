@@ -1,4 +1,4 @@
-# Dual Ping Monitor v4
+# Dual Ping Monitor v4.0.1
 
 A bilingual-ready, Persian-first network observatory for monitoring Iranian and international websites, personal projects, and DNS-over-HTTPS resolvers from two independent vantage points:
 
@@ -6,6 +6,16 @@ A bilingual-ready, Persian-first network observatory for monitoring Iranian and 
 - **Cloudflare Workers** — edge HTTP(S) and DNS-over-HTTPS probes, with optional GitHub-backed history.
 
 The project is designed to distinguish *service reachability* from *application health*. A server returning an HTTP error is not the same as a server that cannot be reached.
+
+## v4.0.1 reliability update
+
+The release keeps the existing v4 monitoring data schema (`4.0`); `4.0.1` is the dashboard/release version.
+
+- Fixed a fatal JavaScript initialization-order error that left the initial loading overlay visible forever.
+- Added an independent boot watchdog, visible recovery notice, and safe panel-by-panel rendering.
+- Catalog loading now supports a last-known-good local cache and Worker configuration fallback.
+- History, catalog, and live Worker loading run independently; a Worker or history outage no longer blocks the initial dashboard.
+- Added automated UI bootstrap scenarios for normal operation, Worker outage, history outage, malformed catalog, and full offline recovery.
 
 ## v4 highlights
 
@@ -47,6 +57,8 @@ The project is designed to distinguish *service reachability* from *application 
     ping.js           # GitHub Actions probe engine
     merge.js          # Daily history merge and index generation
     validate.js       # Target and release validation
+    ui-bootstrap-test.js # Startup, fallback and offline browser simulation
+    service-worker-test.js # Cache isolation and app-shell cache validation
   workflows/
     monitor.yml       # Scheduled / manual GitHub monitoring workflow
 cloudflare/

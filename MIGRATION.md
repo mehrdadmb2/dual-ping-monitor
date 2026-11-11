@@ -21,3 +21,8 @@
 8. Verify `/health`, `/api/status`, the published `data/index.json`, and the dashboard.
 
 See [UPGRADE-GUIDE-FA.md](UPGRADE-GUIDE-FA.md) for the full deployment sequence and troubleshooting table.
+
+
+## v4.0.1 startup recovery
+
+Replace the `docs/` frontend files together. This release fixes the fatal `safeStorageGet` temporal-dead-zone error, adds an independent boot watchdog, updates the Service Worker cache namespace, and includes UI bootstrap/recovery tests. Keep the existing `data/` and `docs/data/` history directories.

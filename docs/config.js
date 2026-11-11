@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   window.DPM_CONFIG = Object.freeze({
-    version: '4.0.0',
+    version: '4.0.1',
     schemaVersion: '4.0',
     dataBase: 'data/',
     targetCatalog: 'targets.json',

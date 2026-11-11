@@ -10,9 +10,38 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230a1020'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%2348e4d5' stroke-width='3' opacity='.35'/%3E%3Ccircle cx='32' cy='32' r='12' fill='none' stroke='%2348e4d5' stroke-width='3' opacity='.7'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%2348e4d5'/%3E%3Cpath d='M32 32 49 15' stroke='%23ffae58' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
-  <script src="config.js" defer></script>
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css?v=4.0.1">
+  <script src="config.js?v=4.0.1" defer></script>
+  <script src="script.js?v=4.0.1" defer></script>
+  <script>
+    // Independent boot guard: a JavaScript exception or a blocked asset must never
+    // leave the full-screen loader covering an otherwise usable static dashboard.
+    (function () {
+      let completed = false;
+      const reveal = (message, report) => {
+        const boot = document.getElementById('bootScreen');
+        if (boot) boot.classList.add('is-hidden');
+        if (message && report) {
+          const notice = document.getElementById('bootRecovery');
+          if (notice) { notice.hidden = false; notice.textContent = message; }
+        }
+      };
+      const timer = window.setTimeout(() => {
+        if (completed) return;
+        reveal('راه‌اندازی کامل نشد؛ صفحه در حالت بازیابی نمایش داده می‌شود. اتصال شبکه یا خطای JavaScript را بررسی کنید.', true);
+      }, 10000);
+      window.__DPM_BOOT_GUARD__ = {
+        dismiss() { completed = true; window.clearTimeout(timer); reveal('', false); },
+        fail(message) { if (!completed) { completed = true; window.clearTimeout(timer); reveal(message, true); } }
+      };
+      window.addEventListener('error', event => {
+        if (event && (event.error || event.message)) window.__DPM_BOOT_GUARD__.fail('خطای اجرای صفحه شناسایی شد؛ بخش‌های قابل‌دسترس نمایش داده شدند. برای جزئیات Console را بررسی کنید.');
+      }, true);
+      window.addEventListener('unhandledrejection', () => {
+        window.__DPM_BOOT_GUARD__.fail('دریافت برخی داده‌ها ناموفق بود؛ داشبورد در حالت بازیابی نمایش داده می‌شود.');
+      }, true);
+    })();
+  </script>
 </head>
 <body>
   <div class="ambient ambient-a" aria-hidden="true"></div>
@@ -30,15 +59,16 @@
     <div class="boot-brand">DUAL PING <span>MONITOR</span></div>
     <div class="boot-message" id="bootMessage">در حال راه‌اندازی هسته‌ی پایش…</div>
     <div class="boot-progress"><i></i></div>
-    <div class="boot-foot">NETWORK OBSERVATORY <span>·</span> VERSION 4.0</div>
+    <div class="boot-foot">NETWORK OBSERVATORY <span>·</span> VERSION 4.0.1</div>
   </div>
 
   <main class="app-shell" id="appShell">
+    <div class="boot-recovery" id="bootRecovery" role="alert" hidden>صفحه در حالت بازیابی اجرا شده است.</div>
     <header class="topbar glass-panel">
       <a class="brand" href="./" aria-label="Dual Ping Monitor home">
         <span class="brand-symbol" aria-hidden="true"><i></i><b></b><em></em></span>
         <span class="brand-copy">
-          <span class="brand-eyebrow">NETWORK OBSERVATORY <b>V4.0</b></span>
+          <span class="brand-eyebrow">NETWORK OBSERVATORY <b>V4.0.1</b></span>
           <strong>Dual Ping <span>Monitor</span></strong>
           <small>سامانه‌ی چندمنظوره‌ی پایش سلامت اینترنت</small>
         </span>
@@ -63,7 +93,7 @@
     <section class="hero-layout">
       <article class="hero-card glass-panel">
         <div class="hero-copy">
-          <div class="eyebrow-line"><span class="live-indicator"></span> REAL-TIME NETWORK INTELLIGENCE <span class="eyebrow-divider"></span><span id="heroVersion">DPM / 4.0.0</span></div>
+          <div class="eyebrow-line"><span class="live-indicator"></span> REAL-TIME NETWORK INTELLIGENCE <span class="eyebrow-divider"></span><span id="heroVersion">DPM / 4.0.1</span></div>
           <h1>سلامت شبکه را<br><span>با دقت اندازه بگیر.</span></h1>
           <p>پایش هم‌زمان دامنه‌های داخلی و خارجی، سنجش مستقل DNS، بررسی HTTP و ICMP و مقایسه‌ی دو نقطه‌ی اندازه‌گیری؛ همراه با تاریخچه و تحلیل خطا.</p>
           <div class="hero-actions">
@@ -185,7 +215,7 @@
     </section>
 
     <footer class="footer glass-panel">
-      <div class="footer-brand"><span class="footer-mark">◎</span><div><strong>Dual Ping Monitor <small>v4.0.0</small></strong><span>Built for noisy networks · resilient by design</span></div></div>
+      <div class="footer-brand"><span class="footer-mark">◎</span><div><strong>Dual Ping Monitor <small>v4.0.1</small></strong><span>Built for noisy networks · resilient by design</span></div></div>
       <div class="footer-status"><span id="footerDataInfo">تاریخچه‌ی GitHub Pages</span><span class="footer-separator">·</span><a href="https://github.com/mehrdadmb2/dual-ping-monitor" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a><span class="footer-separator">·</span><a id="workerHealthLink" href="https://dual-ping-worker.game-developer-mb.workers.dev/health" target="_blank" rel="noopener noreferrer">Worker health ↗</a></div>
       <button class="footer-action" id="clearCacheBtn" type="button">پاک‌سازی کش محلی</button>
     </footer>
@@ -205,7 +235,7 @@
 
   <script>
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=4.0.1').catch(() => {}));
     }
   </script>
 </body>

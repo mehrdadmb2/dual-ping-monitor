@@ -19,8 +19,9 @@
     liveEdge: null, currentById: new Map(), latestSnapshot: null,
     category: 'all', search: '', group: 'all', sort: 'status', period: '24h',
     autoRefresh: true, refreshingLive: false, refreshTimer: null, selectedId: null,
-    theme: safeStorageGet(STORAGE_THEME) || CONFIG.defaultTheme,
-    loading: true, lastRefresh: null, extraDaysLoaded: false, lastError: null
+    theme: CONFIG.defaultTheme,
+    loading: true, lastRefresh: null, extraDaysLoaded: false, lastError: null,
+    initialized: false, bootHidden: false
   };
 
   const $ = id => document.getElementById(id);
@@ -38,6 +39,10 @@
   const safeStorageGet = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const safeStorageSet = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
   const safeStorageRemove = key => { try { localStorage.removeItem(key); } catch {} };
+  // Read browser storage only after the safe helper has been initialized.
+  // Calling this from the state initializer above triggers a TDZ ReferenceError.
+  state.theme = safeStorageGet(STORAGE_THEME) || CONFIG.defaultTheme;
+  const STORAGE_CATALOG = 'dpm-target-catalog-v4';
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const isoDay = date => date.toISOString().slice(0, 10);
   const nowIso = () => new Date().toISOString();
@@ -172,11 +177,34 @@
   function latestOf(rows) { return rows?.length ? rows[rows.length - 1] : null; }
 
   async function loadCatalog() {
-    const catalog = await fetchJson(`${CONFIG.targetCatalog}?v=${encodeURIComponent(CONFIG.version)}`);
-    state.catalog = Array.isArray(catalog.sites) ? catalog.sites : [];
-    state.dnsCatalog = Array.isArray(catalog.dns) ? catalog.dns : [];
+    let catalog = null;
+    let lastError = null;
+    try {
+      const payload = await fetchJson(`${CONFIG.targetCatalog}?v=${encodeURIComponent(CONFIG.version)}`, { timeoutMs: 7000, cache: 'no-cache' });
+      if (Array.isArray(payload?.sites) && Array.isArray(payload?.dns)) catalog = payload;
+      else lastError = new Error('Static target catalog has an invalid schema');
+    } catch (error) { lastError = error; }
+
+    // Prefer the last known good catalog before trying another remote origin.
+    if (!catalog) {
+      try {
+        const cached = safeStorageGet(STORAGE_CATALOG);
+        const parsed = cached ? JSON.parse(cached) : null;
+        if (Array.isArray(parsed?.sites) && Array.isArray(parsed?.dns)) catalog = parsed;
+      } catch {}
+    }
+    if (!catalog) {
+      try {
+        const payload = await fetchJson(`${CONFIG.workerUrl.replace(/\/$/, '')}/api/config`, { timeoutMs: 6000, cache: 'no-cache' });
+        if (Array.isArray(payload?.sites) && Array.isArray(payload?.dns)) catalog = payload;
+      } catch (error) { lastError = error; }
+    }
+    if (!catalog) throw lastError || new Error('Target catalog is unavailable');
+    state.catalog = catalog.sites.filter(row => row && row.id).map(row => ({ ...row }));
+    state.dnsCatalog = catalog.dns.filter(row => row && row.id).map(row => ({ ...row }));
     state.catalogMap = new Map(state.catalog.map(row => [row.id, row]));
     for (const row of state.dnsCatalog) state.catalogMap.set(row.id, row);
+    safeStorageSet(STORAGE_CATALOG, JSON.stringify({ sites: state.catalog, dns: state.dnsCatalog }));
     populateGroupOptions();
     return catalog;
   }
@@ -202,6 +230,8 @@
     const mergedUrl = `${CONFIG.dataBase}merged/${day}.json?dpm=${CONFIG.version}`;
     try {
       const merged = await fetchJson(mergedUrl, { timeoutMs: 10000, cache: 'no-cache' });
+      const hasMergedSchema = Array.isArray(merged) || Array.isArray(merged?.sources?.github) || Array.isArray(merged?.sources?.cloudflare);
+      if (!hasMergedSchema) throw new Error(`Invalid merged history schema for ${day}`);
       return {
         github: normalizeSourcePayload(merged, 'github'),
         cloudflare: normalizeSourcePayload(merged, 'cloudflare')
@@ -274,10 +304,14 @@
 
   function hideBootScreen(message) {
     if (message && $('bootMessage')) $('bootMessage').textContent = message;
+    if (state.bootHidden) return;
+    state.bootHidden = true;
+    try { window.clearTimeout(window.__DPM_BOOT_FAILSAFE_TIMER__); } catch {}
     window.setTimeout(() => {
       $('bootScreen')?.classList.add('is-hidden');
       state.loading = false;
-    }, 180);
+    }, 120);
+    try { window.__DPM_BOOT_GUARD__?.dismiss?.(); } catch {}
   }
 
   function setSystemBadge(label, mode = 'loading') {
@@ -362,6 +396,9 @@
     $('visibleCount').textContent = faNumber(rows.length);
     $('targetSummary').textContent = `${faNumber(rows.length)} هدف`;
     $('targetEmpty').hidden = rows.length > 0;
+    $('targetEmpty').textContent = (state.catalog.length + state.dnsCatalog.length) === 0
+      ? 'فهرست اهداف در دسترس نیست؛ اتصال یا فایل targets.json را بررسی کنید.'
+      : 'موردی با این فیلتر پیدا نشد.';
     $('targetGrid').innerHTML = rows.map((target, index) => {
       const status = statusClass(target.status);
       const info = statusInfo(status);
@@ -484,7 +521,8 @@
     setSystemBadge(available === 0 ? 'بدون داده' : badgeMode === 'ok' ? 'سامانه پایدار' : badgeMode === 'warn' ? 'نیازمند بررسی' : 'اختلال در منابع', badgeMode);
     const sourceHealth = $('sourceHealth');
     sourceHealth.className = `source-health ${badgeMode}`;
-    sourceHealth.querySelector('span:last-child').textContent = available === 0 ? 'هیچ منبع داده‌ای پاسخ نداده است' : healthy === available ? 'منابع پایش داده‌ی تازه و قابل‌استفاده دارند' : 'حداقل یک منبع قدیمی یا دارای اختلال است';
+    const healthText = sourceHealth.querySelector('span:last-child');
+    if (healthText) healthText.textContent = available === 0 ? 'هیچ منبع داده‌ای پاسخ نداده است' : healthy === available ? 'منابع پایش داده‌ی تازه و قابل‌استفاده دارند' : 'حداقل یک منبع قدیمی یا دارای اختلال است';
   }
 
   function renderComparison() {
@@ -649,7 +687,7 @@
     const allowed = ['aurora', 'obsidian', 'arctic', 'amethyst', 'ember'];
     state.theme = allowed.includes(theme) ? theme : CONFIG.defaultTheme;
     document.documentElement.dataset.theme = state.theme;
-    $('themeSelect').value = state.theme;
+    if ($('themeSelect')) $('themeSelect').value = state.theme;
     safeStorageSet(STORAGE_THEME, state.theme);
   }
 
@@ -659,14 +697,33 @@
     renderTargets();
   }
 
+  function updateRecoveryNotice() {
+    const notice = $('bootRecovery');
+    if (!notice) return;
+    const catalogCount = state.catalog.length + state.dnsCatalog.length;
+    const hasSnapshot = Boolean(state.sourceLatest.github || state.sourceLatest.cloudflare || state.liveEdge);
+    if (!catalogCount) {
+      notice.hidden = false;
+      notice.textContent = 'فهرست اهداف از GitHub Pages، حافظه‌ی محلی یا Worker دریافت نشد. اتصال شبکه و دسترسی به فایل targets.json را بررسی کنید.';
+    } else if (!hasSnapshot && state.lastError) {
+      notice.hidden = false;
+      notice.textContent = 'کاتالوگ بارگذاری شده، اما تاریخچه و داده‌ی زنده فعلاً در دسترس نیستند. داشبورد آماده است و با بازگشت ارتباط، اطلاعات را دریافت می‌کند.';
+    } else {
+      notice.hidden = true;
+    }
+  }
+
   function renderAll() {
-    buildCurrentMap();
-    renderMetrics();
-    renderTargets();
-    renderComparison();
-    renderIncidents();
-    renderChart();
-    updateSourceStatus();
+    // A single malformed panel must not prevent the rest of the dashboard from rendering.
+    const renderers = [buildCurrentMap, renderMetrics, renderTargets, renderComparison, renderIncidents, renderChart, updateSourceStatus];
+    for (const render of renderers) {
+      try { render(); }
+      catch (error) {
+        state.lastError = error;
+        console.error(`[DPM] Dashboard panel failed (${render.name || 'render'}):`, error);
+      }
+    }
+    updateRecoveryNotice();
   }
 
   async function loadSevenDays() {
@@ -706,9 +763,14 @@
     $('shortcutsDialog').addEventListener('click', event => { if (event.target === $('shortcutsDialog')) $('shortcutsDialog').close(); });
     $('clearCacheBtn').addEventListener('click', async () => {
       safeStorageRemove(STORAGE_THEME);
-      try { const keys = await caches.keys(); await Promise.all(keys.map(key => caches.delete(key))); } catch {}
+      safeStorageRemove(STORAGE_CATALOG);
+      // GitHub Pages can host several projects on one origin. Never clear their caches.
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(key => key.startsWith('dpm-shell-')).map(key => caches.delete(key)));
+      } catch {}
       setTheme(CONFIG.defaultTheme);
-      showToast('کش محلی پاک شد؛ برای دریافت نسخه‌ی تازه صفحه را بارگذاری کنید.', 'success');
+      showToast('کش اختصاصی Dual Ping پاک شد؛ کش سایر پروژه‌ها دست‌نخورده ماند.', 'success');
     });
     document.addEventListener('keydown', event => {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -738,36 +800,66 @@
   }
 
   async function init() {
-    setTheme(state.theme);
-    installEvents();
-    $('heroVersion').textContent = `DPM / ${CONFIG.version}`;
-    let finished = false;
-    const startup = (async () => {
-      const errors = [];
-      try { await loadCatalog(); } catch (error) { errors.push(error); }
-      try { await loadHistorical({ days: 2 }); } catch (error) { errors.push(error); }
-      finished = true;
-      return errors;
-    })();
-    const errors = await Promise.race([startup, sleep(6000).then(() => null)]);
-    if (errors?.length) {
-      state.lastError = errors[0];
-      showToast('بخشی از کاتالوگ یا تاریخچه در دسترس نبود؛ دریافت زنده همچنان فعال است.', 'error');
+    try {
+      setTheme(state.theme);
+      installEvents();
+      $('heroVersion').textContent = `DPM / ${CONFIG.version}`;
+
+      // Catalog and history are independent; fetch them concurrently.
+      const startup = Promise.allSettled([loadCatalog(), loadHistorical({ days: 2 })]);
+      const outcome = await Promise.race([
+        startup.then(results => ({ finished: true, results })),
+        sleep(5200).then(() => ({ finished: false, results: [] }))
+      ]);
+
+      if (outcome.finished) {
+        const failed = outcome.results.filter(item => item.status === 'rejected');
+        if (failed.length) {
+          state.lastError = failed[0].reason;
+          showToast('برخی داده‌ها در دسترس نبودند؛ داشبورد با اطلاعات موجود ادامه می‌دهد.', 'error');
+        }
+      }
+
+      renderAll();
+      state.initialized = true;
+      updateRecoveryNotice();
+      hideBootScreen();
+
+      if (!outcome.finished) {
+        startup.then(results => {
+          const failed = results.filter(item => item.status === 'rejected');
+          if (failed.length) state.lastError = failed[0].reason;
+          renderAll();
+        }).catch(error => console.error('[DPM] Late startup failed:', error));
+      }
+
+      // Live probes never block the first usable paint.
+      refreshLive({ quiet: true });
+      scheduleAutoRefresh();
+    } catch (error) {
+      state.lastError = error;
+      console.error('[DPM] Initialization failed; entering recovery mode:', error);
+      try { renderAll(); } catch (renderError) { console.error('[DPM] Recovery render failed:', renderError); }
+      setSystemBadge('حالت بازیابی', 'warn');
+      if ($('bootRecovery')) { $('bootRecovery').hidden = false; $('bootRecovery').textContent = 'راه‌اندازی کامل نشد؛ بخش‌های قابل‌دسترس نمایش داده شده‌اند. اتصال و خطاهای Console را بررسی کنید.'; }
+      hideBootScreen('خطای راه‌اندازی؛ داشبورد در حالت بازیابی نمایش داده می‌شود.');
+      showToast('راه‌اندازی کامل نشد؛ بخش‌های قابل‌استفاده نمایش داده می‌شوند. جزئیات در Console موجود است.', 'error');
+      scheduleAutoRefresh();
     }
-    buildCurrentMap();
-    renderAll();
-    hideBootScreen();
-    if (!finished) {
-      startup.then(lateErrors => {
-        if (lateErrors.length) state.lastError = lateErrors[0];
-        buildCurrentMap(); renderAll();
-      }).catch(() => {});
-    }
-    // The edge probe runs independently, so the dashboard does not wait for
-    // a slow or unreachable target before becoming usable.
-    refreshLive({ quiet: true });
-    scheduleAutoRefresh();
   }
+
+  window.addEventListener('error', event => {
+    const error = event?.error || new Error(event?.message || 'Unhandled browser error');
+    state.lastError = error;
+    console.error('[DPM] Unhandled browser error:', error);
+    if (!state.initialized) hideBootScreen('خطای JavaScript؛ در حال نمایش حالت بازیابی…');
+  });
+  window.addEventListener('unhandledrejection', event => {
+    const error = event?.reason instanceof Error ? event.reason : new Error(String(event?.reason || 'Unhandled promise rejection'));
+    state.lastError = error;
+    console.error('[DPM] Unhandled promise rejection:', error);
+    if (!state.initialized) hideBootScreen('خطای دریافت داده؛ صفحه در حالت بازیابی نمایش داده می‌شود.');
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
