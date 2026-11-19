@@ -1,9 +1,10 @@
 {
   "version": 4,
   "schema_version": "4.0",
-  "latest": "2026-11-18",
-  "generated_at": "2026-11-18T19:29:34.212Z",
+  "latest": "2026-11-19",
+  "generated_at": "2026-11-19T01:23:13.807Z",
   "dates": [
+    "2026-11-19",
     "2026-11-18",
     "2026-11-17",
     "2026-11-16",
@@ -47,7 +48,7 @@
     "cloudflare": true
   },
   "snapshots": {
-    "github": 3,
-    "cloudflare": 234
+    "github": 1,
+    "cloudflare": 17
   }
 }
